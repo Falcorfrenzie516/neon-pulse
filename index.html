@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Pulse Alpha 0.2</title>
+<title>Neon Pulse Alpha 0.3</title>
 <style>
-:root{--bg:#060711;--panel:#11152a;--panel2:#181d3a;--pink:#ff3eb5;--cyan:#35dbff;--violet:#8b5cff;--gold:#ffd65a;--muted:#adb6d6}
+:root{--bg:#060711;--panel:#11152a;--panel2:#181d3a;--pink:#ff3eb5;--cyan:#35dbff;--violet:#8b5cff;--gold:#ffd65a;--green:#61eea4;--muted:#adb6d6}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:Arial,sans-serif;overflow:hidden}
 button{font:inherit}.screen{display:none;height:100%;overflow:auto;padding:12px}.screen.active{display:block}
-#gameScreen.active{display:block;padding:0;overflow:hidden}
+#gameScreen.active{display:block;padding:0;overflow:hidden;position:relative}
 header{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#090b17;border-bottom:1px solid #ffffff16}
 .brand{font-weight:1000;font-size:22px}.brand span{color:var(--pink)}.meta{font-size:12px}
 .card{background:linear-gradient(var(--panel2),var(--panel));border:1px solid #ffffff18;border-radius:18px;padding:14px;margin-bottom:10px}
-.primary,.secondary{border:0;border-radius:14px;padding:12px 14px;font-weight:900;color:#fff}.primary{width:100%;background:linear-gradient(135deg,var(--pink),var(--violet))}.secondary{background:#1a2143;border:1px solid #ffffff18}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hero h1{font-size:34px;line-height:.96}.hero h1 span{color:var(--pink)}.muted{color:var(--muted)}.tiny{font-size:12px}
+.primary{width:100%;border:0;border-radius:14px;padding:13px 14px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--pink),var(--violet))}
+.hero h1{font-size:34px;line-height:.96}.hero h1 span{color:var(--pink)}.muted{color:var(--muted)}.tiny{font-size:12px}
 #game{display:block;width:100%;height:100%;touch-action:none;background:#090b17}
 .hud{position:absolute;inset:0;pointer-events:none}.hudRow{display:flex;justify-content:space-between;padding:10px}
 .pill{background:#070914dd;border:1px solid #ffffff1b;border-radius:12px;padding:7px 9px;font-size:12px;font-weight:900}
@@ -22,178 +22,421 @@ header{height:58px;display:flex;align-items:center;justify-content:space-between
 .phase{position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:1000;letter-spacing:1px}
 .tip{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#060814cc;border-radius:999px;padding:7px 10px;font-size:11px;white-space:nowrap}
 .overlay{position:absolute;inset:0;background:#03040bea;display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}.overlay.hidden{display:none}.overlay .card{width:min(460px,100%)}
-.choiceGrid{display:grid;gap:10px}.choice{width:100%;text-align:left;background:#151a39;border:1px solid #35dbff55;color:#fff;padding:12px;border-radius:14px}
-.choice b,.choice small{display:block}.choice small{color:#b8c1df}
+.choiceGrid{display:grid;gap:10px}.choice{width:100%;text-align:left;background:#151a39;border:1px solid #35dbff55;color:#fff;padding:12px;border-radius:14px}.choice b,.choice small{display:block}.choice small{color:#b8c1df}
 </style>
 </head>
 <body>
+
 <div id="menu" class="screen active">
-<header><div class="brand">NEON <span>PULSE</span></div><div class="meta">🎟 <b id="stubs">0</b> &nbsp; ✨ <b id="glow">0</b> &nbsp; 🪩 <b id="balls">0</b></div></header>
-<div class="card hero"><div class="tiny muted">ALPHA 0.2 • BASEMENT RAVE</div><h1>FROM BASEMENT<br><span>TO MAIN STAGE.</span></h1>
-<p class="muted">This build removes all floating enemies/orbs. The run is only track choices. The progression zone is Merch Boxes + Generators that stop ahead of you until destroyed.</p>
-<button class="primary" id="playBtn">▶ START SET</button></div>
-<div class="grid">
-<div class="card"><b>🎧 Permanent Stats</b><div class="tiny muted">Damage, health, crit</div></div>
-<div class="card"><b>👥 Crew</b><div class="tiny muted">Animal, Echo, Lux</div></div>
-<div class="card"><b>🪩 Shop</b><div class="tiny muted">Disco Balls</div></div>
-<div class="card"><b>🎪 Festivals</b><div class="tiny muted">Progress saved</div></div>
+<header>
+  <div class="brand">NEON <span>PULSE</span></div>
+  <div class="meta">🎟 <b id="stubs">0</b> &nbsp; ✨ <b id="glow">0</b> &nbsp; 🪩 <b id="balls">0</b></div>
+</header>
+<div class="card hero">
+  <div class="tiny muted">ALPHA 0.3 • TRACK DAMAGE TEST</div>
+  <h1>BASEMENT<br><span>RAVE.</span></h1>
+  <p class="muted">No aliens. No floating targets. Your weapon fires straight ahead. Shoot the track you want and earn as much of its bonus as your current weapon power can break through before you reach it.</p>
+  <button class="primary" id="playBtn">▶ START SET</button>
 </div>
 </div>
 
 <div id="gameScreen" class="screen">
 <canvas id="game"></canvas>
 <div class="hud">
-<div class="hudRow"><span class="pill">🎤 Lv <b id="weaponLv">1</b></span><span class="pill">🎵 Beats <b id="beatLv">0</b></span><span class="pill">👥 <b id="runCrew">0</b>/3</span></div>
-<div class="progressBar"><div id="runProgress"></div></div>
-<div id="phaseLabel" class="phase">RUN</div>
-<div class="tip">Drag left/right • choose one track</div>
+  <div class="hudRow">
+    <span class="pill">🎤 Weapon <b id="weaponLv">1</b></span>
+    <span class="pill">🎵 Beats <b id="beatLv">0</b></span>
+    <span class="pill">👥 Crew <b id="runCrew">0</b></span>
+  </div>
+  <div class="progressBar"><div id="runProgress"></div></div>
+  <div id="phaseLabel" class="phase">RUN</div>
+  <div class="tip">Drag left/right • shots fire straight ahead</div>
 </div>
 <div id="overlay" class="overlay hidden"></div>
 </div>
 
 <script>
 const $=s=>document.querySelector(s);
-let state=JSON.parse(localStorage.getItem('np_alpha02')||'null')||{stubs:0,glow:0,balls:0,bestStage:0,crew:[
-{id:'animal',name:'Animal',role:'Drummer',emoji:'🥁',level:1},
-{id:'echo',name:'Echo',role:'Vocalist',emoji:'🎤',level:1},
-{id:'lux',name:'Lux',role:'Lighting Tech',emoji:'💡',level:1}
-]};
-function save(){localStorage.setItem('np_alpha02',JSON.stringify(state));stubs.textContent=state.stubs;glow.textContent=state.glow;balls.textContent=state.balls}
+let state=JSON.parse(localStorage.getItem('np_alpha03')||'null')||{
+  stubs:0,glow:0,balls:0,bestStage:0,
+  crew:[
+    {id:'animal',name:'Animal',role:'Drummer',emoji:'🥁',level:1},
+    {id:'echo',name:'Echo',role:'Vocalist',emoji:'🎤',level:1},
+    {id:'lux',name:'Lux',role:'Lighting Tech',emoji:'💡',level:1}
+  ]
+};
+function save(){
+  localStorage.setItem('np_alpha03',JSON.stringify(state));
+  $('#stubs').textContent=state.stubs;
+  $('#glow').textContent=state.glow;
+  $('#balls').textContent=state.balls;
+}
 save();
 
-const canvas=$('#game'),ctx=canvas.getContext('2d'),menu=$('#menu'),gameScreen=$('#gameScreen'),overlay=$('#overlay');
-let W,H,dpr=1,last=0,raf=0,paused=true,active=false,pointer=null;
+const canvas=$('#game'),ctx=canvas.getContext('2d');
+const menu=$('#menu'),gameScreen=$('#gameScreen'),overlay=$('#overlay');
+let W=0,H=0,dpr=1,last=0,raf=0,paused=true,active=false,pointer=null;
 let gates=[],targets=[],shots=[];
 const player={x:0,y:0,r:18};
 let run={};
 
-function resize(){const r=canvas.getBoundingClientRect();W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);player.y=H*.82;if(!player.x)player.x=W/2}
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  player.y=H*.82;if(!player.x)player.x=W/2;
+}
 addEventListener('resize',resize);
 canvas.addEventListener('pointerdown',e=>{pointer=e.clientX;canvas.setPointerCapture(e.pointerId)});
 canvas.addEventListener('pointermove',e=>{if(pointer!==null)pointer=e.clientX});
 canvas.addEventListener('pointerup',()=>pointer=null);
 
-playBtn.onclick=()=>{menu.classList.remove('active');gameScreen.classList.add('active');resize();startRun()};
+$('#playBtn').onclick=()=>{
+  menu.classList.remove('active');gameScreen.classList.add('active');
+  resize();startRun();
+};
 
 function startRun(){
-run={stage:0,phase:'run',weaponLv:1,beats:0,stubs:0,glow:0,crew:[],distance:0,gateClock:0,fireClock:0,progressionDone:0,damage:14};
-gates=[];targets=[];shots=[];player.x=W/2;active=true;paused=true;updateHud();
-showOverlay(`<div class="card"><h2>🪩 Basement Rave</h2><p class="muted">No floating targets. Choose tracks, then clear the progression zone.</p><button class="primary" onclick="resume()">START SET</button></div>`);
+  run={
+    stage:0,phase:'run',weaponLv:1,beats:0,stubs:0,glow:0,
+    crewPicks:[],distance:0,gateClock:0,fireClock:0,
+    progressionDone:0,
+    baseDamage:10
+  };
+  gates=[];targets=[];shots=[];player.x=W/2;active=true;paused=true;updateHud();
+  showOverlay(`<div class="card">
+    <h2>🪩 Basement Rave</h2>
+    <p class="muted">Shoot straight ahead into the track you want. Each track has several reward units. Stronger weapons can break more units before you reach the gate.</p>
+    <button class="primary" onclick="resumeRun()">START SET</button>
+  </div>`);
+  last=performance.now();
+  cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
 }
-window.resume=()=>{overlay.classList.add('hidden');paused=false;last=performance.now()}
+window.resumeRun=()=>{overlay.classList.add('hidden');paused=false;last=performance.now()}
 function showOverlay(html){overlay.innerHTML=html;overlay.classList.remove('hidden');paused=true}
 
+function weaponDamage(){
+  return run.baseDamage + (run.weaponLv-1)*5;
+}
+
+function makeGate(type,name,emoji,x){
+  // Different gates can roll different max values.
+  let max=1;
+  if(type==='weapon') max=1+Math.floor(Math.random()*3);       // +1 to +3 weapon levels
+  if(type==='beats') max=1+Math.floor(Math.random()*5);        // +1 to +5 beats
+  if(type==='stubs') max=3+Math.floor(Math.random()*6);        // +3 to +8 reward units
+  if(type==='glow') max=2+Math.floor(Math.random()*5);         // +2 to +6 glow sticks
+  if(type==='crew') max=1+Math.floor(Math.random()*5);         // +1 to +5 crew picks/stacks
+
+  const unitHP = 16 + run.stage*2;
+  return {
+    type,name,emoji,x,y:-105,w:145,h:92,
+    maxReward:max,claimed:0,
+    unitHP,damageBank:0
+  };
+}
+
 function spawnGates(){
-if(gates.length)return;
-const opts=[
-{type:'weapon',name:'SOUND CHECK',sub:'+1 Weapon Level',emoji:'🎛️'},
-{type:'beats',name:'SPEAKERS',sub:'+1 Beat',emoji:'🔊'},
-{type:'stubs',name:'STUB PILE',sub:'+ Ticket Stubs',emoji:'🎟'},
-{type:'glow',name:'GLOW PILE',sub:'+ Glow Sticks',emoji:'✨'},
-{type:'crew',name:'CREW',sub:'+1 Crew',emoji:'👥'}
-].sort(()=>Math.random()-.5).slice(0,2);
-gates=[{x:W*.28,y:-95,w:130,h:82,...opts[0]},{x:W*.72,y:-95,w:130,h:82,...opts[1]}];
+  if(gates.length)return;
+  const pool=[
+    ['weapon','SOUND CHECK','🎛️'],
+    ['beats','SPEAKERS','🔊'],
+    ['stubs','STUB PILE','🎟'],
+    ['glow','GLOW PILE','✨'],
+    ['crew','CREW','👥']
+  ].sort(()=>Math.random()-.5).slice(0,2);
+
+  gates=[
+    makeGate(...pool[0],W*.28),
+    makeGate(...pool[1],W*.72)
+  ];
 }
-function useGate(g){
-gates=[];
-if(g.type==='weapon')run.weaponLv++;
-if(g.type==='beats')run.beats++;
-if(g.type==='stubs')run.stubs+=20+run.beats*6;
-if(g.type==='glow')run.glow+=8+run.beats*3;
-if(g.type==='crew')chooseCrew();
-updateHud();
+
+function hitGate(g,damage){
+  if(g.claimed>=g.maxReward)return;
+  g.damageBank += damage;
+  while(g.damageBank>=g.unitHP && g.claimed<g.maxReward){
+    g.damageBank -= g.unitHP;
+    g.claimed++;
+  }
 }
-function chooseCrew(){
-const choices=state.crew.map(c=>`<button class="choice" onclick="pickCrew('${c.id}')"><b>${c.emoji} ${c.name}</b><small>${c.role} • Lv ${c.level}</small></button>`).join('');
-showOverlay(`<div class="card"><h2>👥 Choose Crew</h2><div class="choiceGrid">${choices}</div></div>`);
+
+function applyGate(g){
+  gates=[];
+  const n=g.claimed;
+
+  if(g.type==='weapon' && n>0) run.weaponLv += n;
+  if(g.type==='beats' && n>0) run.beats += n;
+  if(g.type==='stubs' && n>0) run.stubs += n*10;
+  if(g.type==='glow' && n>0) run.glow += n;
+
+  if(g.type==='crew' && n>0){
+    chooseCrew(n);
+    updateHud();
+    return;
+  }
+  updateHud();
 }
-window.pickCrew=id=>{if(run.crew.length<3)run.crew.push(id);overlay.classList.add('hidden');paused=false;updateHud()}
+
+function chooseCrew(count){
+  run.pendingCrew=count;
+  openCrewChoice();
+}
+function openCrewChoice(){
+  if(run.pendingCrew<=0){
+    overlay.classList.add('hidden');paused=false;updateHud();return;
+  }
+  const choices=state.crew.map(c=>`<button class="choice" onclick="pickCrew('${c.id}')">
+    <b>${c.emoji} ${c.name}</b><small>${c.role} • choose ${run.pendingCrew} more</small>
+  </button>`).join('');
+  showOverlay(`<div class="card">
+    <h2>👥 Crew +${run.pendingCrew}</h2>
+    <p class="muted">Each point you earned from the gate gives one crew pick. Pick the same member again to stack them for this run.</p>
+    <div class="choiceGrid">${choices}</div>
+  </div>`);
+}
+window.pickCrew=id=>{
+  run.crewPicks.push(id);
+  run.pendingCrew--;
+  openCrewChoice();
+};
 
 function beginProgression(){
-run.phase='progression';run.progressionDone=0;gates=[];shots=[];targets=[];
-const seq=[
-['merch','📦','MERCH BOX',35],['merch','📦','MERCH BOX',45],['merch','📦','MERCH BOX',55],
-['gen','⚡','GENERATOR',80],['gen','⚡','GENERATOR',120],['gen','⚡','GENERATOR',170],['gen','⚡','GENERATOR',230]
-];
-targets=seq.map((a,i)=>({kind:a[0],emoji:a[1],label:a[2],hp:a[3],max:a[3],r:a[0]==='gen'?34:27,x:W/2,y:-140-i*185,stopY:H*.28,dead:false}));
-updateHud();
+  run.phase='progression';run.progressionDone=0;
+  gates=[];shots=[];targets=[];
+
+  const seq=[
+    ['merch','📦','MERCH BOX',45],
+    ['merch','📦','MERCH BOX',60],
+    ['merch','📦','MERCH BOX',75],
+    ['gen','⚡','GENERATOR',95],
+    ['gen','⚡','GENERATOR',140],
+    ['gen','⚡','GENERATOR',200],
+    ['gen','⚡','GENERATOR',275]
+  ];
+
+  targets=seq.map((a,i)=>({
+    kind:a[0],emoji:a[1],label:a[2],hp:a[3],max:a[3],
+    r:a[0]==='gen'?36:28,x:W/2,
+    y:-150-i*190,stopY:H*.28,dead:false
+  }));
+  updateHud();
 }
 
-function fire(){
-const t=targets.find(x=>!x.dead);
-if(!t)return;
-if(t.y>=player.y-40)return; // never fire backward
-const dx=t.x-player.x,dy=t.y-player.y,l=Math.hypot(dx,dy)||1;
-shots.push({x:player.x,y:player.y-12,vx:dx/l*760,vy:dy/l*760,life:1.4,r:7,dmg:run.damage*(1+.18*(run.weaponLv-1)),emoji:run.weaponLv<3?'🎤':run.weaponLv<5?'🥁':'💿'});
-run.crew.forEach((id,i)=>{const c=state.crew.find(x=>x.id===id),a=(i-(run.crew.length-1)/2)*.13,cs=Math.cos(a),sn=Math.sin(a);const vx=(dx/l*690)*cs-(dy/l*690)*sn,vy=(dx/l*690)*sn+(dy/l*690)*cs;shots.push({x:player.x+(i-(run.crew.length-1)/2)*14,y:player.y+12,vx,vy,life:1.3,r:5,dmg:run.damage*(.28+c.level*.05),emoji:c.emoji})});
+function fireStraight(){
+  // Straight vertical shot. No homing and no backward shooting.
+  shots.push({
+    x:player.x,y:player.y-18,
+    vx:0,vy:-760,
+    life:1.55,r:7,
+    dmg:weaponDamage(),
+    emoji:run.weaponLv<3?'🎤':run.weaponLv<5?'🥁':'💿'
+  });
 }
-function reward(t){
-const r=Math.random();
-if(t.kind==='merch'){if(r<.45)run.stubs+=30;else if(r<.8)run.glow+=12;else state.balls++}
-else{if(r<.35)run.stubs+=45;else if(r<.6)run.glow+=18;else if(r<.66)state.balls++}
+
+function rewardTarget(t){
+  const r=Math.random();
+  if(t.kind==='merch'){
+    if(r<.45)run.stubs+=30;
+    else if(r<.80)run.glow+=12;
+    else state.balls++;
+  } else {
+    if(r<.35)run.stubs+=45;
+    else if(r<.60)run.glow+=18;
+    else if(r<.66)state.balls++;
+  }
 }
+
 function finishStage(){
-run.stage++;state.bestStage=Math.max(state.bestStage,run.stage);state.stubs+=run.stubs;state.glow+=run.glow;run.stubs=0;run.glow=0;save();
-showOverlay(`<div class="card"><h2>🎪 Stage ${run.stage} Cleared</h2><p class="muted">All Merch Boxes and Generators destroyed.</p><button class="primary" onclick="nextStage()">NEXT STAGE</button></div>`);
-}
-window.nextStage=()=>{run.phase='run';run.distance=0;run.gateClock=0;gates=[];targets=[];shots=[];overlay.classList.add('hidden');paused=false;updateHud()}
+  run.stage++;
+  state.bestStage=Math.max(state.bestStage,run.stage);
+  state.stubs+=run.stubs;state.glow+=run.glow;
+  run.stubs=0;run.glow=0;save();
 
-function updateHud(){weaponLv.textContent=run.weaponLv;beatLv.textContent=run.beats;runCrew.textContent=run.crew.length;phaseLabel.textContent=run.phase==='run'?'RUN':'PROGRESSION ZONE • '+run.progressionDone+'/7';runProgress.style.width=Math.min(100,(run.phase==='run'?run.distance/30:run.progressionDone/7)*100)+'%'}
+  showOverlay(`<div class="card">
+    <h2>🎪 Stage ${run.stage} Cleared</h2>
+    <p class="muted">All Merch Boxes and Generators destroyed.</p>
+    <button class="primary" onclick="nextStage()">NEXT STAGE</button>
+  </div>`);
+}
+window.nextStage=()=>{
+  run.phase='run';run.distance=0;run.gateClock=0;
+  gates=[];targets=[];shots=[];
+  overlay.classList.add('hidden');paused=false;updateHud();
+};
+
+function updateHud(){
+  $('#weaponLv').textContent=run.weaponLv;
+  $('#beatLv').textContent=run.beats;
+  $('#runCrew').textContent=run.crewPicks.length;
+  $('#phaseLabel').textContent=run.phase==='run'?'RUN':'PROGRESSION ZONE • '+run.progressionDone+'/7';
+  $('#runProgress').style.width=Math.min(100,(run.phase==='run'?run.distance/30:run.progressionDone/7)*100)+'%';
+}
 
 function update(dt){
-if(pointer!==null)player.x+=Math.sign(pointer-player.x)*Math.min(Math.abs(pointer-player.x),430*dt);
-player.x=Math.max(24,Math.min(W-24,player.x));
+  if(pointer!==null){
+    player.x += Math.sign(pointer-player.x)*Math.min(Math.abs(pointer-player.x),430*dt);
+  }
+  player.x=Math.max(24,Math.min(W-24,player.x));
 
-if(run.phase==='run'){
-run.distance+=dt;run.gateClock+=dt;
-if(run.gateClock>5.5){run.gateClock=0;spawnGates()}
-if(run.distance>30)beginProgression();
-}else{
-const current=targets.find(t=>!t.dead);
-if(!current){finishStage();return}
-if(current.y<current.stopY)current.y=Math.min(current.stopY,current.y+125*dt);
-const ci=targets.indexOf(current);
-for(let i=ci+1;i<targets.length;i++){const prev=targets[i-1],t=targets[i];if(t.dead)continue;const desired=prev.y-185;if(t.y<desired)t.y=Math.min(desired,t.y+125*dt)}
-run.fireClock-=dt;if(run.fireClock<=0){fire();run.fireClock=.45}
-}
+  // Always fire straight ahead while moving through the run/progression.
+  run.fireClock-=dt;
+  if(run.fireClock<=0){
+    fireStraight();
+    run.fireClock=Math.max(.16,.46-(run.weaponLv-1)*.018);
+  }
 
-for(const g of gates)g.y+=125*dt;
-for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt}
+  if(run.phase==='run'){
+    run.distance+=dt;
+    run.gateClock+=dt;
 
-for(const s of shots){
-if(s.life<=0)continue;
-for(const t of targets){
-if(t.dead)continue;
-if(Math.hypot(s.x-t.x,s.y-t.y)<s.r+t.r){
-t.hp-=s.dmg;s.life=0;
-if(t.hp<=0){t.dead=true;run.progressionDone++;reward(t);updateHud()}
-break;
-}}
-}
+    if(run.gateClock>5.8){
+      run.gateClock=0;
+      spawnGates();
+    }
+    if(run.distance>30)beginProgression();
 
-for(const g of gates){
-if(g.y+g.h/2>player.y-player.r&&g.y-g.h/2<player.y+player.r&&Math.abs(player.x-g.x)<g.w/2){useGate(g);break}
-if(g.y>H+110)gates=[];
-}
-shots=shots.filter(s=>s.life>0);
-updateHud();
+  } else {
+    const current=targets.find(t=>!t.dead);
+    if(!current){
+      finishStage();return;
+    }
+
+    if(current.y<current.stopY){
+      current.y=Math.min(current.stopY,current.y+125*dt);
+    }
+
+    const ci=targets.indexOf(current);
+    for(let i=ci+1;i<targets.length;i++){
+      const prev=targets[i-1],t=targets[i];
+      if(t.dead)continue;
+      const desired=prev.y-190;
+      if(t.y<desired)t.y=Math.min(desired,t.y+125*dt);
+    }
+  }
+
+  for(const g of gates)g.y+=120*dt;
+  for(const s of shots){
+    s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
+  }
+
+  // Straight-shot collision with gates.
+  for(const s of shots){
+    if(s.life<=0)continue;
+
+    if(run.phase==='run'){
+      for(const g of gates){
+        if(s.x>=g.x-g.w/2 && s.x<=g.x+g.w/2 &&
+           s.y>=g.y-g.h/2 && s.y<=g.y+g.h/2){
+          hitGate(g,s.dmg);
+          s.life=0;
+          break;
+        }
+      }
+    }else{
+      for(const t of targets){
+        if(t.dead)continue;
+        if(Math.hypot(s.x-t.x,s.y-t.y)<s.r+t.r){
+          t.hp-=s.dmg;
+          s.life=0;
+          if(t.hp<=0){
+            t.dead=true;run.progressionDone++;
+            rewardTarget(t);updateHud();
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // Player chooses a gate by physically passing through it.
+  for(const g of gates){
+    if(g.y+g.h/2>player.y-player.r &&
+       g.y-g.h/2<player.y+player.r &&
+       Math.abs(player.x-g.x)<g.w/2){
+      applyGate(g);break;
+    }
+    if(g.y>H+110)gates=[];
+  }
+
+  shots=shots.filter(s=>s.life>0 && s.y>-50);
+  updateHud();
 }
 
 function draw(){
-ctx.clearRect(0,0,W,H);
-const grd=ctx.createLinearGradient(0,0,0,H);grd.addColorStop(0,'#191440');grd.addColorStop(.55,'#0a0d1b');grd.addColorStop(1,'#05060b');ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
-ctx.strokeStyle='#35dbff22';for(let i=0;i<11;i++){const y=(i*90+(performance.now()/8)%90)-90;ctx.beginPath();ctx.moveTo(W*.18,y);ctx.lineTo(W*.82,y);ctx.stroke()}
-ctx.strokeStyle='#ff3eb534';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W*.18,0);ctx.lineTo(W*.08,H);ctx.stroke();ctx.beginPath();ctx.moveTo(W*.82,0);ctx.lineTo(W*.92,H);ctx.stroke();
+  ctx.clearRect(0,0,W,H);
+  const grd=ctx.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0,'#191440');grd.addColorStop(.55,'#0a0d1b');grd.addColorStop(1,'#05060b');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
 
-for(const g of gates){ctx.shadowBlur=16;ctx.shadowColor='#35dbff';ctx.strokeStyle='#35dbff';ctx.lineWidth=4;ctx.strokeRect(g.x-g.w/2,g.y-g.h/2,g.w,g.h);ctx.shadowBlur=0;ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='900 16px Arial';ctx.fillText(g.emoji+' '+g.name,g.x,g.y-4);ctx.font='800 11px Arial';ctx.fillStyle='#d7def7';ctx.fillText(g.sub,g.x,g.y+17)}
-ctx.textAlign='center';
-for(const t of targets){if(t.dead)continue;ctx.font=(t.kind==='gen'?'38px':'34px')+' Arial';ctx.fillText(t.emoji,t.x,t.y+10);ctx.fillStyle='#ffffff20';ctx.fillRect(t.x-42,t.y-t.r-14,84,6);ctx.fillStyle=t.kind==='gen'?'#ffd65a':'#63efa5';ctx.fillRect(t.x-42,t.y-t.r-14,84*(t.hp/t.max),6);ctx.font='900 11px Arial';ctx.fillStyle='#e7ecff';ctx.fillText(t.label,t.x,t.y+t.r+24)}
-for(const s of shots){ctx.font=(s.r>6?'20px':'17px')+' Arial';ctx.fillText(s.emoji,s.x,s.y)}
-run.crew?.forEach((id,i)=>{const c=state.crew.find(x=>x.id===id);ctx.font='18px Arial';ctx.fillText(c.emoji,player.x+(i-(run.crew.length-1)/2)*28,player.y+39)});
-ctx.beginPath();ctx.fillStyle='#35dbff';ctx.shadowBlur=20;ctx.shadowColor='#35dbff';ctx.arc(player.x,player.y,player.r+4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.beginPath();ctx.fillStyle='#18172f';ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.font='21px Arial';ctx.fillText('🎧',player.x,player.y+7);
+  ctx.strokeStyle='#35dbff22';ctx.lineWidth=1;
+  for(let i=0;i<11;i++){
+    const y=(i*90+(performance.now()/8)%90)-90;
+    ctx.beginPath();ctx.moveTo(W*.18,y);ctx.lineTo(W*.82,y);ctx.stroke();
+  }
+  ctx.strokeStyle='#ff3eb534';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W*.18,0);ctx.lineTo(W*.08,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W*.82,0);ctx.lineTo(W*.92,H);ctx.stroke();
+
+  // ONLY gates, progression targets, shots, crew and player are drawn.
+  // There is intentionally no enemy/orb/alien rendering anywhere.
+  for(const g of gates){
+    const pct=g.maxReward?g.claimed/g.maxReward:0;
+    ctx.shadowBlur=16;ctx.shadowColor='#35dbff';
+    ctx.strokeStyle='#35dbff';ctx.lineWidth=4;
+    ctx.strokeRect(g.x-g.w/2,g.y-g.h/2,g.w,g.h);
+    ctx.shadowBlur=0;ctx.textAlign='center';ctx.fillStyle='#fff';
+    ctx.font='900 16px Arial';ctx.fillText(g.emoji+' '+g.name,g.x,g.y-16);
+
+    ctx.font='900 20px Arial';
+    ctx.fillStyle=g.claimed>0?'#61eea4':'#d7def7';
+    ctx.fillText(`+${g.claimed} / +${g.maxReward}`,g.x,g.y+10);
+
+    ctx.fillStyle='#ffffff20';ctx.fillRect(g.x-50,g.y+25,100,6);
+    ctx.fillStyle='#ffd65a';ctx.fillRect(g.x-50,g.y+25,100*pct,6);
+  }
+
+  ctx.textAlign='center';
+  for(const t of targets){
+    if(t.dead)continue;
+    ctx.font=(t.kind==='gen'?'40px':'36px')+' Arial';
+    ctx.fillText(t.emoji,t.x,t.y+11);
+
+    ctx.fillStyle='#ffffff20';ctx.fillRect(t.x-44,t.y-t.r-14,88,6);
+    ctx.fillStyle=t.kind==='gen'?'#ffd65a':'#61eea4';
+    ctx.fillRect(t.x-44,t.y-t.r-14,88*(t.hp/t.max),6);
+
+    ctx.font='900 11px Arial';ctx.fillStyle='#e7ecff';
+    ctx.fillText(t.label,t.x,t.y+t.r+25);
+  }
+
+  for(const s of shots){
+    ctx.font='20px Arial';
+    ctx.fillText(s.emoji,s.x,s.y);
+  }
+
+  run.crewPicks?.forEach((id,i)=>{
+    const c=state.crew.find(x=>x.id===id);
+    ctx.font='18px Arial';
+    ctx.fillText(c.emoji,player.x+(i-(run.crewPicks.length-1)/2)*26,player.y+39+(Math.floor(i/5)*20));
+  });
+
+  ctx.beginPath();ctx.fillStyle='#35dbff';
+  ctx.shadowBlur=20;ctx.shadowColor='#35dbff';
+  ctx.arc(player.x,player.y,player.r+4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+
+  ctx.beginPath();ctx.fillStyle='#18172f';
+  ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
+  ctx.font='21px Arial';ctx.fillText('🎧',player.x,player.y+7);
 }
 
-function loop(now){const dt=Math.min(.033,(now-last)/1000||0);last=now;if(gameScreen.classList.contains('active')&&active&&!paused)update(dt);if(gameScreen.classList.contains('active'))draw();raf=requestAnimationFrame(loop)}
+function loop(now){
+  const dt=Math.min(.033,(now-last)/1000||0);last=now;
+  if(gameScreen.classList.contains('active')&&active&&!paused)update(dt);
+  if(gameScreen.classList.contains('active'))draw();
+  raf=requestAnimationFrame(loop);
+}
 resize();raf=requestAnimationFrame(loop);
 </script>
 </body>
