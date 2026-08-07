@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>Neon Pulse Alpha 0.1</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="brand">NEON <span>PULSE</span></div>
+      <div class="meta">
+        <span>🎟 <b id="stubs">0</b></span>
+        <span>✨ <b id="glow">0</b></span>
+        <span>🪩 <b id="balls">0</b></span>
+      </div>
+    </header>
+
+    <main>
+      <section id="menu" class="screen active">
+        <div class="hero card">
+          <div class="eyebrow">ALPHA 0.1 • BASEMENT RAVE</div>
+          <h1>FROM BASEMENT<br><span>TO MAIN STAGE.</span></h1>
+          <p>Run the festival lane, pick one of two tracks, level your mic and Beats, recruit crew, smash Merch Boxes and Generators, then spend your rewards between runs.</p>
+          <button id="playBtn" class="primary">▶ START SET</button>
+        </div>
+
+        <div class="grid">
+          <button class="card navCard" data-open="stats"><div class="icon">🎧</div><b>DJ Stats</b><small>Permanent upgrades</small></button>
+          <button class="card navCard" data-open="crew"><div class="icon">👥</div><b>Crew</b><small>Rename + upgrade</small></button>
+          <button class="card navCard" data-open="shop"><div class="icon">🪩</div><b>Shop</b><small>Open Disco Balls</small></button>
+          <button class="card navCard" data-open="progress"><div class="icon">🎪</div><b>Festivals</b><small>Career progress</small></button>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen gameScreen">
+        <canvas id="game"></canvas>
+        <div class="hud">
+          <div class="hudRow">
+            <span class="pill">🎤 Lv <b id="weaponLv">1</b></span>
+            <span class="pill">🎵 Beats <b id="beatLv">0</b></span>
+            <span class="pill">👥 <b id="runCrew">0</b>/3</span>
+          </div>
+          <div class="progressBar"><div id="runProgress"></div></div>
+          <div id="phaseLabel" class="phase">RUN</div>
+          <div class="tip">Drag left/right • auto-attack on</div>
+        </div>
+        <div id="gameOverlay" class="overlay hidden"></div>
+      </section>
+
+      <section id="stats" class="screen">
+        <div class="topline"><button class="back">←</button><h2>🎧 DJ Stats</h2></div>
+        <div id="statsList"></div>
+      </section>
+
+      <section id="crew" class="screen">
+        <div class="topline"><button class="back">←</button><h2>👥 Crew</h2></div>
+        <div id="crewList"></div>
+      </section>
+
+      <section id="shop" class="screen">
+        <div class="topline"><button class="back">←</button><h2>🪩 Merch Tent</h2></div>
+        <div class="card">
+          <h3>Standard Disco Ball</h3>
+          <p>Random reward: Ticket Stubs, Glow Sticks, Merch, or a Crew Upgrade.</p>
+          <button id="buyBall" class="primary">BUY • 75 🎟</button>
+        </div>
+        <div id="shopResult"></div>
+      </section>
+
+      <section id="progress" class="screen">
+        <div class="topline"><button class="back">←</button><h2>🎪 Festival Progress</h2></div>
+        <div id="festivalProgress"></div>
+      </section>
+    </main>
+  </div>
+  <script src="src/game.js"></script>
+</body>
+</html>
