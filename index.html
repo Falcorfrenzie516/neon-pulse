@@ -28,7 +28,7 @@ h1,h2,h3,p{margin-top:0}.muted{color:var(--muted)} .tiny{font-size:12px}
 .row{display:flex;gap:10px;align-items:center}.grow{flex:1}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-nav{height:78px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px 8px 8px;background:#090b17;border-top:1px solid #ffffff14}
+nav{height:78px;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px 8px 8px;background:#090b17;border-top:1px solid #ffffff14}
 nav button{background:transparent;color:#8f98bd;border:0;border-radius:12px;font-size:11px;font-weight:800}
 nav button.active{background:#ffffff0b;color:white}
 nav .ico{display:block;font-size:22px;margin-bottom:3px}
@@ -71,6 +71,15 @@ linear-gradient(180deg,#16163b,#0d1023);border-radius:22px;border:1px solid #fff
 input{width:100%;padding:12px;border-radius:12px;border:1px solid #ffffff20;background:#090d20;color:white;outline:none}
 .shopItem,.encoreNode{margin-bottom:10px}
 progress{width:100%}
+
+.musicCard{margin-bottom:10px}
+.musicCard.active{border-color:#34dcff88;box-shadow:0 0 22px #34dcff22}
+.musicPlay{min-width:92px}
+.musicMeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.fileDrop{border:1px dashed #ffffff38;background:#ffffff08;border-radius:16px;padding:16px;text-align:center}
+.nowPlaying{position:sticky;top:0;z-index:2;margin-bottom:10px;background:linear-gradient(135deg,#151a3a,#231338);border:1px solid #ff3eb54f}
+.range{width:100%}
+
 </style>
 </head>
 <body>
@@ -138,6 +147,44 @@ progress{width:100%}
   <div id="crewList"></div>
 </section>
 
+
+<section id="music" class="screen">
+  <div class="row">
+    <div class="grow">
+      <h2 style="margin-bottom:2px">🎵 Music</h2>
+      <div class="muted tiny">Pick a free built-in theme or bring your own track.</div>
+    </div>
+  </div>
+  <div style="height:10px"></div>
+
+  <div class="card nowPlaying">
+    <div class="tiny muted">NOW PLAYING</div>
+    <h3 id="nowPlayingTitle" style="margin:4px 0 6px">No track selected</h3>
+    <div class="row">
+      <button class="btn secondary grow" id="musicToggleBtn" onclick="toggleCurrentMusic()">▶ Play</button>
+      <button class="btn secondary" onclick="stopMusic()">■ Stop</button>
+    </div>
+    <div style="height:8px"></div>
+    <div class="tiny muted">Volume</div>
+    <input class="range" id="musicVolume" type="range" min="0" max="1" value="0.65" step="0.01" oninput="setMusicVolume(this.value)">
+  </div>
+
+  <h3>Free Themes</h3>
+  <p class="muted tiny">These are original procedural demo loops generated in your browser, so they don't use copyrighted songs.</p>
+  <div id="musicThemeList"></div>
+
+  <h3 style="margin-top:18px">Your Music</h3>
+  <div class="fileDrop">
+    <div style="font-size:32px">🎶</div>
+    <b>Upload an audio file</b>
+    <p class="muted tiny">MP3, WAV, M4A, AAC, or OGG. Your file stays in this browser's local storage for the prototype.</p>
+    <input id="musicUpload" type="file" accept="audio/*" style="display:none" onchange="handleMusicUpload(event)">
+    <button class="btn" onclick="document.getElementById('musicUpload').click()">CHOOSE MUSIC</button>
+  </div>
+  <div style="height:10px"></div>
+  <div id="uploadedMusicList"></div>
+</section>
+
 <section id="more" class="screen">
   <h2>🎛 Career</h2>
   <div class="grid2">
@@ -154,6 +201,7 @@ progress{width:100%}
   <button onclick="go('battle',this)"><span class="ico">🎮</span>Battle</button>
   <button onclick="go('festivals',this)"><span class="ico">🎪</span>Festivals</button>
   <button onclick="go('crew',this)"><span class="ico">👥</span>Crew</button>
+  <button onclick="go('music',this)"><span class="ico">🎵</span>Music</button>
   <button onclick="go('more',this)"><span class="ico">✨</span>More</button>
 </nav>
 </div>
@@ -206,7 +254,7 @@ function go(id,btn){
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   else [...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id==='battle'?'battle':id))?.classList.add('active');
-  if(id==='battle'){resize();draw()}
+  if(id==='battle'){resize();draw()} if(id==='music'){renderMusicThemes();renderUploadedTracks();updateMusicUI()}
 }
 function refreshAll(){
   document.getElementById('fanCount').textContent=state.fans.toLocaleString();
@@ -286,6 +334,196 @@ function showEncore(){
   document.getElementById('modal').classList.remove('hidden')
 }
 function doEncore(){state.encore++;state.fans=0;state.cash+=250;state.disco+=10;save();closeModal();alert('ENCORE! New tour started with permanent bonuses.')}
+
+
+// ---------------- MUSIC ----------------
+const musicThemes = [
+  {id:'neon_drive', name:'Neon Drive', bpm:118, mood:'Melodic House', icon:'🌌'},
+  {id:'warehouse_heat', name:'Warehouse Heat', bpm:128, mood:'Tech House', icon:'🏭'},
+  {id:'laser_rush', name:'Laser Rush', bpm:138, mood:'Festival Electro', icon:'⚡'},
+  {id:'afterglow', name:'Afterglow', bpm:110, mood:'Chill Progressive', icon:'🌅'}
+];
+
+let audioCtx=null, masterGain=null, themeTimer=null, themeStep=0;
+let currentMusic={type:null,id:null,name:null,playing:false};
+let uploadedAudio=new Audio();
+uploadedAudio.loop=true;
+uploadedAudio.preload='auto';
+
+function ensureAudio(){
+  if(!audioCtx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    audioCtx=new AC();
+    masterGain=audioCtx.createGain();
+    masterGain.gain.value=parseFloat(document.getElementById('musicVolume')?.value||0.65);
+    masterGain.connect(audioCtx.destination);
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}
+
+function synthHit(freq, dur=.12, type='sine', gain=.07, when=0){
+  ensureAudio();
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+when);
+  g.gain.setValueAtTime(gain,audioCtx.currentTime+when);
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+when+dur);
+  o.connect(g);g.connect(masterGain);o.start(audioCtx.currentTime+when);o.stop(audioCtx.currentTime+when+dur+.02);
+}
+function noiseHit(dur=.05,gain=.035){
+  ensureAudio();
+  const buffer=audioCtx.createBuffer(1,audioCtx.sampleRate*dur,audioCtx.sampleRate);
+  const data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+  const s=audioCtx.createBufferSource(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
+  s.buffer=buffer;f.type='highpass';f.frequency.value=5500;g.gain.value=gain;s.connect(f);f.connect(g);g.connect(masterGain);s.start();
+}
+function kick(){
+  ensureAudio();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),now=audioCtx.currentTime;
+  o.type='sine';o.frequency.setValueAtTime(135,now);o.frequency.exponentialRampToValueAtTime(48,now+.12);
+  g.gain.setValueAtTime(.22,now);g.gain.exponentialRampToValueAtTime(.0001,now+.18);
+  o.connect(g);g.connect(masterGain);o.start(now);o.stop(now+.19);
+}
+function themeTick(theme){
+  const step=themeStep++%16;
+  if(step%4===0) kick();
+  if(step%4===2) noiseHit(.045,.025);
+  if(step%2===1) noiseHit(.025,.012);
+
+  if(theme.id==='neon_drive'){
+    const seq=[220,277,330,415];
+    if(step%2===0) synthHit(seq[Math.floor(step/4)%4],.16,'triangle',.045);
+    if(step%4===3) synthHit(seq[(Math.floor(step/4)+2)%4]*2,.09,'sine',.03);
+  } else if(theme.id==='warehouse_heat'){
+    const seq=[110,110,147,123];
+    if(step%2===0) synthHit(seq[Math.floor(step/4)%4],.09,'sawtooth',.038);
+  } else if(theme.id==='laser_rush'){
+    const seq=[196,247,294,392];
+    synthHit(seq[step%4]*(step%8<4?1:2),.06,'square',.025);
+  } else if(theme.id==='afterglow'){
+    const seq=[174,220,261,329];
+    if(step%4===0) synthHit(seq[Math.floor(step/4)%4],.38,'sine',.05);
+    if(step%4===2) synthHit(seq[Math.floor(step/4)%4]*1.5,.24,'triangle',.025);
+  }
+}
+function playTheme(id){
+  const theme=musicThemes.find(t=>t.id===id); if(!theme)return;
+  stopMusic(false);ensureAudio();themeStep=0;
+  const interval=(60/theme.bpm/4)*1000;
+  currentMusic={type:'theme',id:theme.id,name:theme.name,playing:true};
+  themeTick(theme);
+  themeTimer=setInterval(()=>themeTick(theme),interval);
+  updateMusicUI();
+}
+function toggleCurrentMusic(){
+  if(!currentMusic.type){playTheme('neon_drive');return}
+  if(currentMusic.playing){pauseMusic()}else{
+    if(currentMusic.type==='theme')playTheme(currentMusic.id);
+    else playUploaded(currentMusic.id);
+  }
+}
+function pauseMusic(){
+  if(currentMusic.type==='theme'){
+    if(themeTimer){clearInterval(themeTimer);themeTimer=null}
+  }else if(currentMusic.type==='upload'){
+    uploadedAudio.pause();
+  }
+  currentMusic.playing=false;updateMusicUI();
+}
+function stopMusic(clear=true){
+  if(themeTimer){clearInterval(themeTimer);themeTimer=null}
+  uploadedAudio.pause();uploadedAudio.currentTime=0;
+  if(clear) currentMusic={type:null,id:null,name:null,playing:false};
+  else currentMusic.playing=false;
+  updateMusicUI();
+}
+function setMusicVolume(v){
+  const val=parseFloat(v);
+  if(masterGain) masterGain.gain.value=val;
+  uploadedAudio.volume=val;
+  localStorage.setItem('neonPulseMusicVolume',String(val));
+}
+function updateMusicUI(){
+  const title=document.getElementById('nowPlayingTitle'),btn=document.getElementById('musicToggleBtn');
+  if(title) title.textContent=currentMusic.name||'No track selected';
+  if(btn) btn.textContent=currentMusic.playing?'⏸ Pause':'▶ Play';
+  renderMusicThemes();renderUploadedTracks();
+}
+function renderMusicThemes(){
+  const box=document.getElementById('musicThemeList');if(!box)return;
+  box.innerHTML=musicThemes.map(t=>`
+    <div class="card musicCard ${currentMusic.type==='theme'&&currentMusic.id===t.id?'active':''}">
+      <div class="row"><div style="font-size:30px">${t.icon}</div>
+      <div class="grow"><b>${t.name}</b><div class="musicMeta"><span class="badge">${t.bpm} BPM</span><span class="badge">${t.mood}</span></div></div>
+      <button class="btn secondary musicPlay" onclick="playTheme('${t.id}')">▶ Play</button></div>
+    </div>`).join('');
+}
+
+// IndexedDB for uploaded audio persistence
+const DB_NAME='NeonPulseMusicDB', DB_STORE='tracks';
+function openMusicDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE,{keyPath:'id'})};
+    req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+  })
+}
+async function dbPutTrack(track){const db=await openMusicDB();return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(track);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+async function dbGetTracks(){const db=await openMusicDB();return new Promise((res,rej)=>{const r=db.transaction(DB_STORE,'readonly').objectStore(DB_STORE).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbGetTrack(id){const db=await openMusicDB();return new Promise((res,rej)=>{const r=db.transaction(DB_STORE,'readonly').objectStore(DB_STORE).get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbDeleteTrack(id){const db=await openMusicDB();return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+
+async function handleMusicUpload(ev){
+  const file=ev.target.files?.[0];if(!file)return;
+  if(!file.type.startsWith('audio/')){alert('Please choose an audio file.');return}
+  const max=20*1024*1024;
+  if(file.size>max){alert('For this prototype, please keep uploads under 20 MB.');return}
+  const id='track_'+Date.now();
+  try{
+    await dbPutTrack({id,name:file.name,type:file.type,size:file.size,blob:file,created:Date.now()});
+    await renderUploadedTracks();
+    playUploaded(id);
+  }catch(e){
+    console.error(e);alert('This browser could not save the track locally.');
+  }
+  ev.target.value='';
+}
+async function renderUploadedTracks(){
+  const box=document.getElementById('uploadedMusicList');if(!box)return;
+  let tracks=[];try{tracks=await dbGetTracks()}catch(e){}
+  if(!tracks.length){box.innerHTML='<div class="card muted tiny">No personal tracks uploaded yet.</div>';return}
+  box.innerHTML=tracks.sort((a,b)=>b.created-a.created).map(t=>`
+    <div class="card musicCard ${currentMusic.type==='upload'&&currentMusic.id===t.id?'active':''}">
+      <div class="row"><div style="font-size:28px">🎧</div><div class="grow"><b>${escapeHtml(t.name)}</b><div class="tiny muted">${(t.size/1024/1024).toFixed(1)} MB • Stored on this device</div></div></div>
+      <div style="height:8px"></div><div class="grid2">
+        <button class="btn secondary" onclick="playUploaded('${t.id}')">▶ Play</button>
+        <button class="btn secondary" onclick="removeUploaded('${t.id}')">🗑 Remove</button>
+      </div>
+    </div>`).join('');
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function playUploaded(id){
+  stopMusic(false);
+  try{
+    const track=await dbGetTrack(id);if(!track)return;
+    const url=URL.createObjectURL(track.blob);
+    if(uploadedAudio.dataset.url)URL.revokeObjectURL(uploadedAudio.dataset.url);
+    uploadedAudio.dataset.url=url;uploadedAudio.src=url;
+    uploadedAudio.volume=parseFloat(document.getElementById('musicVolume')?.value||0.65);
+    await uploadedAudio.play();
+    currentMusic={type:'upload',id:track.id,name:track.name,playing:true};updateMusicUI();
+  }catch(e){console.error(e);alert('Could not play that file in this browser.')}
+}
+async function removeUploaded(id){
+  if(currentMusic.type==='upload'&&currentMusic.id===id)stopMusic();
+  await dbDeleteTrack(id);renderUploadedTracks();
+}
+uploadedAudio.onended=()=>{currentMusic.playing=false;updateMusicUI()};
+
+function initMusic(){
+  const v=parseFloat(localStorage.getItem('neonPulseMusicVolume')||'0.65');
+  const slider=document.getElementById('musicVolume');if(slider)slider.value=v;
+  uploadedAudio.volume=v;renderMusicThemes();renderUploadedTracks();updateMusicUI();
+}
 
 // ---------------- BATTLE ----------------
 const c=document.getElementById('game'),ctx=c.getContext('2d');
@@ -443,7 +681,7 @@ function draw(){
 }
 function loop(now){if(!running)return;const dt=Math.min(.033,(now-last)/1000||0);last=now;if(!paused)update(dt);draw();requestAnimationFrame(loop)}
 
-load();refreshAll();resize();draw();
+load();refreshAll();resize();draw();initMusic();
 </script>
 </body>
 </html>
