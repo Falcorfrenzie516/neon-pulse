@@ -3,89 +3,123 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Pulse Alpha 0.3</title>
+<title>Neon Pulse Alpha 0.5</title>
 <style>
-:root{--bg:#060711;--panel:#11152a;--panel2:#181d3a;--pink:#ff3eb5;--cyan:#35dbff;--violet:#8b5cff;--gold:#ffd65a;--green:#61eea4;--muted:#adb6d6}
-*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:Arial,sans-serif;overflow:hidden}
-button{font:inherit}.screen{display:none;height:100%;overflow:auto;padding:12px}.screen.active{display:block}
-#gameScreen.active{display:block;padding:0;overflow:hidden;position:relative}
-header{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#090b17;border-bottom:1px solid #ffffff16}
-.brand{font-weight:1000;font-size:22px}.brand span{color:var(--pink)}.meta{font-size:12px}
-.card{background:linear-gradient(var(--panel2),var(--panel));border:1px solid #ffffff18;border-radius:18px;padding:14px;margin-bottom:10px}
-.primary{width:100%;border:0;border-radius:14px;padding:13px 14px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--pink),var(--violet))}
-.hero h1{font-size:34px;line-height:.96}.hero h1 span{color:var(--pink)}.muted{color:var(--muted)}.tiny{font-size:12px}
-#game{display:block;width:100%;height:100%;touch-action:none;background:#090b17}
-.hud{position:absolute;inset:0;pointer-events:none}.hudRow{display:flex;justify-content:space-between;padding:10px}
-.pill{background:#070914dd;border:1px solid #ffffff1b;border-radius:12px;padding:7px 9px;font-size:12px;font-weight:900}
-.progressBar{position:absolute;top:50px;left:12px;right:12px;height:7px;background:#ffffff15;border-radius:999px;overflow:hidden}
-#runProgress{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink))}
-.phase{position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:1000;letter-spacing:1px}
-.tip{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#060814cc;border-radius:999px;padding:7px 10px;font-size:11px;white-space:nowrap}
-.overlay{position:absolute;inset:0;background:#03040bea;display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}.overlay.hidden{display:none}.overlay .card{width:min(460px,100%)}
-.choiceGrid{display:grid;gap:10px}.choice{width:100%;text-align:left;background:#151a39;border:1px solid #35dbff55;color:#fff;padding:12px;border-radius:14px}.choice b,.choice small{display:block}.choice small{color:#b8c1df}
+:root{
+  --bg:#050611;--panel:#11152a;--panel2:#191d3b;--pink:#ff3eb5;--cyan:#35dbff;
+  --violet:#8b5cff;--gold:#ffd65a;--green:#63efa5;--red:#ff5578;--muted:#adb6d6
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+button{font:inherit}
+.screen{display:none;height:100%;overflow:auto}.screen.active{display:block}
+#menu{padding:14px}
+.card{background:linear-gradient(var(--panel2),var(--panel));border:1px solid #ffffff18;border-radius:18px;padding:16px;margin-bottom:12px}
+.brand{font-weight:1000;font-size:24px}.brand span{color:var(--pink)}
+.version{color:var(--cyan);font-weight:900;font-size:12px;margin-top:4px}
+h1{font-size:36px;line-height:.96;margin:12px 0}h1 span{color:var(--pink)}
+h2,h3{margin-top:0}p{color:var(--muted)}
+.primary,.secondary{width:100%;border:0;border-radius:14px;padding:14px;font-weight:900;color:#fff}
+.primary{background:linear-gradient(135deg,var(--pink),var(--violet))}
+.secondary{background:#1a2143;border:1px solid #ffffff18}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{font-size:13px;color:var(--muted)}
+#gameScreen{position:relative;padding:0!important;overflow:hidden}
+#game{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;inset:0;pointer-events:none}
+.hudRow{display:flex;justify-content:space-between;padding:10px}
+.pill{background:#060814e6;border:1px solid #ffffff20;border-radius:12px;padding:8px 10px;font-size:12px;font-weight:900}
+.bar{position:absolute;top:52px;left:12px;right:12px;height:7px;background:#ffffff16;border-radius:999px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.phase{position:absolute;top:69px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:1000;letter-spacing:1px}
+.tip{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#060814d9;padding:7px 10px;border-radius:999px;font-size:11px;white-space:nowrap}
+.overlay{position:absolute;inset:0;background:#03040be8;display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.overlay.hidden{display:none}.overlay .card{width:min(450px,100%)}
+.choiceGrid{display:grid;gap:10px}
+.choice{width:100%;text-align:left;background:#151a39;border:1px solid #35dbff55;color:#fff;padding:12px;border-radius:14px}
+.choice b,.choice small{display:block}.choice small{color:#bcc5e2}
+.result{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.result .card{text-align:center;margin:0}
 </style>
 </head>
 <body>
 
-<div id="menu" class="screen active">
-<header>
-  <div class="brand">NEON <span>PULSE</span></div>
-  <div class="meta">🎟 <b id="stubs">0</b> &nbsp; ✨ <b id="glow">0</b> &nbsp; 🪩 <b id="balls">0</b></div>
-</header>
-<div class="card hero">
-  <div class="tiny muted">ALPHA 0.3 • TRACK DAMAGE TEST</div>
-  <h1>BASEMENT<br><span>RAVE.</span></h1>
-  <p class="muted">No aliens. No floating targets. Your weapon fires straight ahead. Shoot the track you want and earn as much of its bonus as your current weapon power can break through before you reach it.</p>
-  <button class="primary" id="playBtn">▶ START SET</button>
-</div>
-</div>
-
-<div id="gameScreen" class="screen">
-<canvas id="game"></canvas>
-<div class="hud">
-  <div class="hudRow">
-    <span class="pill">🎤 Weapon <b id="weaponLv">1</b></span>
-    <span class="pill">🎵 Beats <b id="beatLv">0</b></span>
-    <span class="pill">👥 Crew <b id="runCrew">0</b></span>
+<section id="menu" class="screen active">
+  <div class="card">
+    <div class="brand">NEON <span>PULSE</span></div>
+    <div class="version">ALPHA 0.5 • CORE LOOP TEST</div>
+    <h1>FAST RUNS.<br><span>NO IDLE TIME.</span></h1>
+    <p>This build focuses only on the loop we locked in: close-together gate choices, straight-ahead shooting, damage-based gate rewards, then a nonstop Merch Box / Generator gauntlet. If a progression target reaches you, the run ends immediately.</p>
+    <button id="playBtn" class="primary">▶ START SET</button>
   </div>
-  <div class="progressBar"><div id="runProgress"></div></div>
-  <div id="phaseLabel" class="phase">RUN</div>
-  <div class="tip">Drag left/right • shots fire straight ahead</div>
-</div>
-<div id="overlay" class="overlay hidden"></div>
-</div>
+  <div class="grid">
+    <div class="card"><b>🎟 Stubs</b><div class="stat"><span id="bankStubs">0</span> banked</div></div>
+    <div class="card"><b>✨ Glow Sticks</b><div class="stat"><span id="bankGlow">0</span> banked</div></div>
+  </div>
+  <div class="card">
+    <h3>Permanent Stats</h3>
+    <div class="grid">
+      <button class="secondary" id="upgradeDamage">🎤 Damage Lv <span id="damageLv">1</span><br><small>Cost <span id="damageCost">50</span> 🎟</small></button>
+      <button class="secondary" id="upgradeFire">⚡ Fire Rate Lv <span id="fireLv">1</span><br><small>Cost <span id="fireCost">50</span> 🎟</small></button>
+    </div>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen">
+  <canvas id="game"></canvas>
+  <div class="hud">
+    <div class="hudRow">
+      <span class="pill">🎤 Lv <b id="weaponLv">1</b></span>
+      <span class="pill">🎵 Beats <b id="beatLv">0</b></span>
+      <span class="pill">👥 <b id="crewCount">0</b></span>
+    </div>
+    <div class="bar"><div id="runProgress" class="fill"></div></div>
+    <div id="phaseLabel" class="phase">RUN</div>
+    <div class="tip">Drag left/right • shots fire straight ahead</div>
+  </div>
+  <div id="overlay" class="overlay hidden"></div>
+</section>
 
 <script>
 const $=s=>document.querySelector(s);
-let state=JSON.parse(localStorage.getItem('np_alpha03')||'null')||{
-  stubs:0,glow:0,balls:0,bestStage:0,
-  crew:[
-    {id:'animal',name:'Animal',role:'Drummer',emoji:'🥁',level:1},
-    {id:'echo',name:'Echo',role:'Vocalist',emoji:'🎤',level:1},
-    {id:'lux',name:'Lux',role:'Lighting Tech',emoji:'💡',level:1}
-  ]
+
+let state=JSON.parse(localStorage.getItem('neonPulseAlpha05')||'null')||{
+  stubs:0,glow:0,damageLv:1,fireLv:1,bestGates:0
 };
-function save(){
-  localStorage.setItem('np_alpha03',JSON.stringify(state));
-  $('#stubs').textContent=state.stubs;
-  $('#glow').textContent=state.glow;
-  $('#balls').textContent=state.balls;
+function saveState(){
+  localStorage.setItem('neonPulseAlpha05',JSON.stringify(state));
+  $('#bankStubs').textContent=state.stubs;
+  $('#bankGlow').textContent=state.glow;
+  $('#damageLv').textContent=state.damageLv;
+  $('#fireLv').textContent=state.fireLv;
+  $('#damageCost').textContent=50+(state.damageLv-1)*35;
+  $('#fireCost').textContent=50+(state.fireLv-1)*35;
 }
-save();
+saveState();
+
+$('#upgradeDamage').onclick=()=>{
+  const cost=50+(state.damageLv-1)*35;
+  if(state.stubs<cost)return alert('Not enough Ticket Stubs.');
+  state.stubs-=cost;state.damageLv++;saveState();
+};
+$('#upgradeFire').onclick=()=>{
+  const cost=50+(state.fireLv-1)*35;
+  if(state.stubs<cost)return alert('Not enough Ticket Stubs.');
+  state.stubs-=cost;state.fireLv++;saveState();
+};
 
 const canvas=$('#game'),ctx=canvas.getContext('2d');
 const menu=$('#menu'),gameScreen=$('#gameScreen'),overlay=$('#overlay');
-let W=0,H=0,dpr=1,last=0,raf=0,paused=true,active=false,pointer=null;
-let gates=[],targets=[],shots=[];
+let W=0,H=0,dpr=1,last=0,raf=0,pointer=null,paused=true,active=false;
 const player={x:0,y:0,r:18};
-let run={};
+let run={},gates=[],shots=[],targets=[],floaters=[];
 
 function resize(){
   const r=canvas.getBoundingClientRect();
   W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);
   canvas.width=W*dpr;canvas.height=H*dpr;
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  player.y=H*.82;if(!player.x)player.x=W/2;
+  player.y=H*.84;if(!player.x)player.x=W/2;
 }
 addEventListener('resize',resize);
 canvas.addEventListener('pointerdown',e=>{pointer=e.clientX;canvas.setPointerCapture(e.pointerId)});
@@ -93,256 +127,301 @@ canvas.addEventListener('pointermove',e=>{if(pointer!==null)pointer=e.clientX});
 canvas.addEventListener('pointerup',()=>pointer=null);
 
 $('#playBtn').onclick=()=>{
-  menu.classList.remove('active');gameScreen.classList.add('active');
-  resize();startRun();
+  menu.classList.remove('active');
+  gameScreen.classList.add('active');
+  resize();
+  startRun();
 };
 
-function startRun(){
+function showOverlay(html){
+  overlay.innerHTML=html;
+  overlay.classList.remove('hidden');
+  paused=true;
+}
+window.resumeRun=()=>{
+  overlay.classList.add('hidden');
+  paused=false;
+  last=performance.now();
+};
+
+function resetRunData(){
   run={
-    stage:0,phase:'run',weaponLv:1,beats:0,stubs:0,glow:0,
-    crewPicks:[],distance:0,gateClock:0,fireClock:0,
+    phase:'run',
+    gatePairsSeen:0,
+    weaponLv:1,
+    beats:0,
+    crew:0,
+    stubs:0,
+    glow:0,
+    gateClock:0,
+    fireClock:0,
     progressionDone:0,
-    baseDamage:10
+    totalProgressTargets:7
   };
-  gates=[];targets=[];shots=[];player.x=W/2;active=true;paused=true;updateHud();
+  gates=[];shots=[];targets=[];floaters=[];
+  player.x=W/2;
+}
+
+function startRun(){
+  resetRunData();
+  active=true;paused=true;updateHud();
   showOverlay(`<div class="card">
     <h2>🪩 Basement Rave</h2>
-    <p class="muted">Shoot straight ahead into the track you want. Each track has several reward units. Stronger weapons can break more units before you reach the gate.</p>
-    <button class="primary" onclick="resumeRun()">START SET</button>
+    <p>Five fast gate choices, then the progression gauntlet. Nothing stops moving. If a Merch Box or Generator reaches you before you destroy it, the run ends.</p>
+    <button class="primary" onclick="resumeRun()">START</button>
   </div>`);
   last=performance.now();
-  cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
-}
-window.resumeRun=()=>{overlay.classList.add('hidden');paused=false;last=performance.now()}
-function showOverlay(html){overlay.innerHTML=html;overlay.classList.remove('hidden');paused=true}
-
-function weaponDamage(){
-  return run.baseDamage + (run.weaponLv-1)*5;
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
 }
 
+function permanentDamage(){return 8+(state.damageLv-1)*2.4}
+function shotDamage(){return permanentDamage()+(run.weaponLv-1)*5}
+function fireInterval(){return Math.max(.12,.34-(state.fireLv-1)*.025-(run.weaponLv-1)*.008)}
+
+function rollMax(type){
+  if(type==='weapon')return 1+Math.floor(Math.random()*3);
+  if(type==='beats')return 2+Math.floor(Math.random()*5);
+  if(type==='stubs')return 3+Math.floor(Math.random()*6);
+  if(type==='glow')return 2+Math.floor(Math.random()*5);
+  if(type==='crew')return 1+Math.floor(Math.random()*4);
+  return 1;
+}
 function makeGate(type,name,emoji,x){
-  // Different gates can roll different max values.
-  let max=1;
-  if(type==='weapon') max=1+Math.floor(Math.random()*3);       // +1 to +3 weapon levels
-  if(type==='beats') max=1+Math.floor(Math.random()*5);        // +1 to +5 beats
-  if(type==='stubs') max=3+Math.floor(Math.random()*6);        // +3 to +8 reward units
-  if(type==='glow') max=2+Math.floor(Math.random()*5);         // +2 to +6 glow sticks
-  if(type==='crew') max=1+Math.floor(Math.random()*5);         // +1 to +5 crew picks/stacks
-
-  const unitHP = 16 + run.stage*2;
   return {
-    type,name,emoji,x,y:-105,w:145,h:92,
-    maxReward:max,claimed:0,
-    unitHP,damageBank:0
+    type,name,emoji,x,y:-105,w:155,h:98,
+    maxReward:rollMax(type),
+    claimed:0,
+    unitHP:18+run.gatePairsSeen*1.5,
+    damageBank:0
   };
 }
-
-function spawnGates(){
-  if(gates.length)return;
+function spawnGatePair(){
+  if(gates.length||run.gatePairsSeen>=5)return;
   const pool=[
     ['weapon','SOUND CHECK','🎛️'],
     ['beats','SPEAKERS','🔊'],
-    ['stubs','STUB PILE','🎟'],
+    ['stubs','STUB PILE','🎟️'],
     ['glow','GLOW PILE','✨'],
     ['crew','CREW','👥']
   ].sort(()=>Math.random()-.5).slice(0,2);
-
   gates=[
-    makeGate(...pool[0],W*.28),
-    makeGate(...pool[1],W*.72)
+    makeGate(...pool[0],W*.29),
+    makeGate(...pool[1],W*.71)
   ];
+  run.gatePairsSeen++;
 }
-
-function hitGate(g,damage){
+function damageGate(g,dmg){
   if(g.claimed>=g.maxReward)return;
-  g.damageBank += damage;
-  while(g.damageBank>=g.unitHP && g.claimed<g.maxReward){
-    g.damageBank -= g.unitHP;
+  g.damageBank+=dmg;
+  while(g.damageBank>=g.unitHP&&g.claimed<g.maxReward){
+    g.damageBank-=g.unitHP;
     g.claimed++;
+    floaters.push({x:g.x,y:g.y-54,text:`+${g.claimed}`,life:.45});
   }
 }
-
 function applyGate(g){
-  gates=[];
   const n=g.claimed;
-
-  if(g.type==='weapon' && n>0) run.weaponLv += n;
-  if(g.type==='beats' && n>0) run.beats += n;
-  if(g.type==='stubs' && n>0) run.stubs += n*10;
-  if(g.type==='glow' && n>0) run.glow += n;
-
-  if(g.type==='crew' && n>0){
-    chooseCrew(n);
-    updateHud();
-    return;
-  }
+  gates=[];
+  if(g.type==='weapon')run.weaponLv+=n;
+  if(g.type==='beats')run.beats+=n;
+  if(g.type==='stubs')run.stubs+=n*10;
+  if(g.type==='glow')run.glow+=n;
+  if(g.type==='crew')run.crew+=n;
   updateHud();
 }
-
-function chooseCrew(count){
-  run.pendingCrew=count;
-  openCrewChoice();
-}
-function openCrewChoice(){
-  if(run.pendingCrew<=0){
-    overlay.classList.add('hidden');paused=false;updateHud();return;
-  }
-  const choices=state.crew.map(c=>`<button class="choice" onclick="pickCrew('${c.id}')">
-    <b>${c.emoji} ${c.name}</b><small>${c.role} • choose ${run.pendingCrew} more</small>
-  </button>`).join('');
-  showOverlay(`<div class="card">
-    <h2>👥 Crew +${run.pendingCrew}</h2>
-    <p class="muted">Each point you earned from the gate gives one crew pick. Pick the same member again to stack them for this run.</p>
-    <div class="choiceGrid">${choices}</div>
-  </div>`);
-}
-window.pickCrew=id=>{
-  run.crewPicks.push(id);
-  run.pendingCrew--;
-  openCrewChoice();
-};
 
 function beginProgression(){
-  run.phase='progression';run.progressionDone=0;
-  gates=[];shots=[];targets=[];
+  run.phase='progression';
+  run.progressionDone=0;
+  gates=[];shots=[];
 
+  // One continuous line of targets. None of these stop.
   const seq=[
-    ['merch','📦','MERCH BOX',45],
-    ['merch','📦','MERCH BOX',60],
-    ['merch','📦','MERCH BOX',75],
-    ['gen','⚡','GENERATOR',95],
-    ['gen','⚡','GENERATOR',140],
-    ['gen','⚡','GENERATOR',200],
-    ['gen','⚡','GENERATOR',275]
+    ['merch','📦','MERCH BOX',42],
+    ['merch','📦','MERCH BOX',58],
+    ['merch','📦','MERCH BOX',76],
+    ['gen','⚡','GENERATOR',100],
+    ['gen','⚡','GENERATOR',145],
+    ['gen','⚡','GENERATOR',205],
+    ['gen','⚡','GENERATOR',285]
   ];
 
+  // Close spacing so the player is always doing something.
   targets=seq.map((a,i)=>({
-    kind:a[0],emoji:a[1],label:a[2],hp:a[3],max:a[3],
-    r:a[0]==='gen'?36:28,x:W/2,
-    y:-150-i*190,stopY:H*.28,dead:false
+    kind:a[0],emoji:a[1],label:a[2],
+    hp:a[3],max:a[3],
+    r:a[0]==='gen'?35:27,
+    x:W/2,
+    y:-120-i*145,
+    dead:false
   }));
   updateHud();
-}
-
-function fireStraight(){
-  // Straight vertical shot. No homing and no backward shooting.
-  shots.push({
-    x:player.x,y:player.y-18,
-    vx:0,vy:-760,
-    life:1.55,r:7,
-    dmg:weaponDamage(),
-    emoji:run.weaponLv<3?'🎤':run.weaponLv<5?'🥁':'💿'
-  });
 }
 
 function rewardTarget(t){
   const r=Math.random();
   if(t.kind==='merch'){
-    if(r<.45)run.stubs+=30;
-    else if(r<.80)run.glow+=12;
-    else state.balls++;
-  } else {
-    if(r<.35)run.stubs+=45;
-    else if(r<.60)run.glow+=18;
-    else if(r<.66)state.balls++;
+    if(r<.48)run.stubs+=25+run.beats*2;
+    else if(r<.84)run.glow+=8+Math.floor(run.beats/2);
+  }else{
+    if(r<.35)run.stubs+=40;
+    else if(r<.60)run.glow+=14;
   }
 }
 
-function finishStage(){
-  run.stage++;
-  state.bestStage=Math.max(state.bestStage,run.stage);
-  state.stubs+=run.stubs;state.glow+=run.glow;
-  run.stubs=0;run.glow=0;save();
+function shootStraight(){
+  shots.push({
+    x:player.x,
+    y:player.y-20,
+    vy:-720,
+    life:1.65,
+    dmg:shotDamage()
+  });
+}
 
+function finishRunSuccess(){
+  active=false;paused=true;
+  bankRunRewards();
+  state.bestGates=Math.max(state.bestGates,run.gatePairsSeen);
+  saveState();
   showOverlay(`<div class="card">
-    <h2>🎪 Stage ${run.stage} Cleared</h2>
-    <p class="muted">All Merch Boxes and Generators destroyed.</p>
-    <button class="primary" onclick="nextStage()">NEXT STAGE</button>
+    <h2>🎆 STAGE CLEARED</h2>
+    <p>You destroyed every progression target before impact.</p>
+    <div class="result">
+      <div class="card"><b>🎟 ${run.stubs}</b><div class="tiny">banked</div></div>
+      <div class="card"><b>✨ ${run.glow}</b><div class="tiny">banked</div></div>
+    </div>
+    <button class="primary" onclick="restartRun()">RUN AGAIN</button>
   </div>`);
 }
-window.nextStage=()=>{
-  run.phase='run';run.distance=0;run.gateClock=0;
-  gates=[];targets=[];shots=[];
-  overlay.classList.add('hidden');paused=false;updateHud();
+
+function failRun(target){
+  active=false;paused=true;
+  bankRunRewards();
+  state.bestGates=Math.max(state.bestGates,run.gatePairsSeen);
+  saveState();
+  showOverlay(`<div class="card">
+    <h2>💀 RUN ENDED</h2>
+    <p><b>${target.label}</b> reached you before you destroyed it.</p>
+    <div class="result">
+      <div class="card"><b>🎟 ${run.stubs}</b><div class="tiny">banked</div></div>
+      <div class="card"><b>✨ ${run.glow}</b><div class="tiny">banked</div></div>
+    </div>
+    <p class="tiny">Run upgrades reset. Permanent upgrades stay.</p>
+    <button class="primary" onclick="restartRun()">RESTART RUN</button>
+  </div>`);
+}
+function bankRunRewards(){
+  state.stubs+=run.stubs;
+  state.glow+=run.glow;
+}
+window.restartRun=()=>{
+  overlay.classList.add('hidden');
+  resetRunData();
+  active=true;paused=false;
+  last=performance.now();
+  updateHud();
 };
 
 function updateHud(){
   $('#weaponLv').textContent=run.weaponLv;
   $('#beatLv').textContent=run.beats;
-  $('#runCrew').textContent=run.crewPicks.length;
-  $('#phaseLabel').textContent=run.phase==='run'?'RUN':'PROGRESSION ZONE • '+run.progressionDone+'/7';
-  $('#runProgress').style.width=Math.min(100,(run.phase==='run'?run.distance/30:run.progressionDone/7)*100)+'%';
+  $('#crewCount').textContent=run.crew;
+  $('#phaseLabel').textContent=run.phase==='run'
+    ? `RUN • GATE ${Math.min(5,run.gatePairsSeen+1)}/5`
+    : `PROGRESSION • ${run.progressionDone}/${run.totalProgressTargets}`;
+
+  const pct=run.phase==='run'
+    ? Math.min(1,run.gatePairsSeen/5)
+    : Math.min(1,run.progressionDone/run.totalProgressTargets);
+  $('#runProgress').style.width=(pct*100)+'%';
 }
 
 function update(dt){
   if(pointer!==null){
-    player.x += Math.sign(pointer-player.x)*Math.min(Math.abs(pointer-player.x),430*dt);
+    player.x+=Math.sign(pointer-player.x)*Math.min(Math.abs(pointer-player.x),500*dt);
   }
   player.x=Math.max(24,Math.min(W-24,player.x));
 
-  // Always fire straight ahead while moving through the run/progression.
   run.fireClock-=dt;
   if(run.fireClock<=0){
-    fireStraight();
-    run.fireClock=Math.max(.16,.46-(run.weaponLv-1)*.018);
+    shootStraight();
+    run.fireClock=fireInterval();
   }
 
   if(run.phase==='run'){
-    run.distance+=dt;
     run.gateClock+=dt;
 
-    if(run.gateClock>5.8){
+    // First pair quickly, then another every ~2.55 sec.
+    const cadence=run.gatePairsSeen===0?0.65:2.55;
+    if(run.gateClock>=cadence&&gates.length===0&&run.gatePairsSeen<5){
       run.gateClock=0;
-      spawnGates();
-    }
-    if(run.distance>30)beginProgression();
-
-  } else {
-    const current=targets.find(t=>!t.dead);
-    if(!current){
-      finishStage();return;
+      spawnGatePair();
     }
 
-    if(current.y<current.stopY){
-      current.y=Math.min(current.stopY,current.y+125*dt);
+    // Once all five gate pairs have physically passed, enter progression immediately.
+    if(run.gatePairsSeen>=5&&gates.length===0&&run.gateClock>.45){
+      beginProgression();
+    }
+  }else{
+    // Everything keeps coming. No stopping.
+    const speed=165+run.progressionDone*5;
+    for(const t of targets){
+      if(!t.dead)t.y+=speed*dt;
     }
 
-    const ci=targets.indexOf(current);
-    for(let i=ci+1;i<targets.length;i++){
-      const prev=targets[i-1],t=targets[i];
-      if(t.dead)continue;
-      const desired=prev.y-190;
-      if(t.y<desired)t.y=Math.min(desired,t.y+125*dt);
+    const firstAlive=targets.find(t=>!t.dead);
+    if(!firstAlive){
+      finishRunSuccess();
+      return;
+    }
+
+    // Collision = immediate death.
+    if(firstAlive.y+firstAlive.r>=player.y-player.r){
+      failRun(firstAlive);
+      return;
     }
   }
 
-  for(const g of gates)g.y+=120*dt;
+  // Gates move quickly and stay close to the player/camera cadence.
+  for(const g of gates)g.y+=205*dt;
+
   for(const s of shots){
-    s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
+    s.y+=s.vy*dt;
+    s.life-=dt;
+  }
+  for(const f of floaters){
+    f.y-=25*dt;
+    f.life-=dt;
   }
 
-  // Straight-shot collision with gates.
   for(const s of shots){
     if(s.life<=0)continue;
 
     if(run.phase==='run'){
       for(const g of gates){
-        if(s.x>=g.x-g.w/2 && s.x<=g.x+g.w/2 &&
-           s.y>=g.y-g.h/2 && s.y<=g.y+g.h/2){
-          hitGate(g,s.dmg);
+        if(
+          s.x>=g.x-g.w/2&&s.x<=g.x+g.w/2&&
+          s.y>=g.y-g.h/2&&s.y<=g.y+g.h/2
+        ){
+          damageGate(g,s.dmg);
           s.life=0;
           break;
         }
       }
     }else{
+      // Straight-ahead only: only collide if shot intersects target in its lane.
       for(const t of targets){
         if(t.dead)continue;
-        if(Math.hypot(s.x-t.x,s.y-t.y)<s.r+t.r){
+        if(Math.abs(s.x-t.x)<t.r+7 && Math.abs(s.y-t.y)<t.r+12){
           t.hp-=s.dmg;
           s.life=0;
           if(t.hp<=0){
-            t.dead=true;run.progressionDone++;
-            rewardTarget(t);updateHud();
+            t.dead=true;
+            run.progressionDone++;
+            rewardTarget(t);
+            updateHud();
           }
           break;
         }
@@ -350,94 +429,146 @@ function update(dt){
     }
   }
 
-  // Player chooses a gate by physically passing through it.
+  // Player chooses whichever gate they physically enter.
   for(const g of gates){
-    if(g.y+g.h/2>player.y-player.r &&
-       g.y-g.h/2<player.y+player.r &&
-       Math.abs(player.x-g.x)<g.w/2){
-      applyGate(g);break;
+    if(
+      g.y+g.h/2>player.y-player.r &&
+      g.y-g.h/2<player.y+player.r &&
+      Math.abs(player.x-g.x)<g.w/2
+    ){
+      applyGate(g);
+      break;
     }
-    if(g.y>H+110)gates=[];
   }
 
-  shots=shots.filter(s=>s.life>0 && s.y>-50);
+  // If both gates pass the player without being chosen, clear them and keep moving.
+  if(gates.length&&gates.every(g=>g.y-g.h/2>player.y+player.r)){
+    gates=[];
+  }
+
+  shots=shots.filter(s=>s.life>0&&s.y>-40);
+  floaters=floaters.filter(f=>f.life>0);
   updateHud();
 }
 
 function draw(){
   ctx.clearRect(0,0,W,H);
-  const grd=ctx.createLinearGradient(0,0,0,H);
-  grd.addColorStop(0,'#191440');grd.addColorStop(.55,'#0a0d1b');grd.addColorStop(1,'#05060b');
-  ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#191440');
+  grad.addColorStop(.55,'#090c1b');
+  grad.addColorStop(1,'#04050a');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,H);
 
-  ctx.strokeStyle='#35dbff22';ctx.lineWidth=1;
-  for(let i=0;i<11;i++){
-    const y=(i*90+(performance.now()/8)%90)-90;
-    ctx.beginPath();ctx.moveTo(W*.18,y);ctx.lineTo(W*.82,y);ctx.stroke();
+  // Faster moving lane lines = stronger auto-run feeling.
+  ctx.strokeStyle='#35dbff22';
+  ctx.lineWidth=1;
+  for(let i=0;i<12;i++){
+    const y=(i*78+(performance.now()/4.5)%78)-78;
+    ctx.beginPath();
+    ctx.moveTo(W*.17,y);
+    ctx.lineTo(W*.83,y);
+    ctx.stroke();
   }
-  ctx.strokeStyle='#ff3eb534';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(W*.18,0);ctx.lineTo(W*.08,H);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(W*.82,0);ctx.lineTo(W*.92,H);ctx.stroke();
 
-  // ONLY gates, progression targets, shots, crew and player are drawn.
-  // There is intentionally no enemy/orb/alien rendering anywhere.
+  ctx.strokeStyle='#ff3eb548';
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W*.18,0);ctx.lineTo(W*.07,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W*.82,0);ctx.lineTo(W*.93,H);ctx.stroke();
+
+  // Gates
   for(const g of gates){
     const pct=g.maxReward?g.claimed/g.maxReward:0;
-    ctx.shadowBlur=16;ctx.shadowColor='#35dbff';
-    ctx.strokeStyle='#35dbff';ctx.lineWidth=4;
+    ctx.shadowBlur=16;
+    ctx.shadowColor='#35dbff';
+    ctx.strokeStyle='#35dbff';
+    ctx.lineWidth=4;
     ctx.strokeRect(g.x-g.w/2,g.y-g.h/2,g.w,g.h);
-    ctx.shadowBlur=0;ctx.textAlign='center';ctx.fillStyle='#fff';
-    ctx.font='900 16px Arial';ctx.fillText(g.emoji+' '+g.name,g.x,g.y-16);
+    ctx.shadowBlur=0;
 
-    ctx.font='900 20px Arial';
-    ctx.fillStyle=g.claimed>0?'#61eea4':'#d7def7';
+    ctx.textAlign='center';
+    ctx.fillStyle='#fff';
+    ctx.font='900 16px Arial';
+    ctx.fillText(`${g.emoji} ${g.name}`,g.x,g.y-18);
+
+    ctx.font='1000 21px Arial';
+    ctx.fillStyle=g.claimed?'#63efa5':'#dfe6ff';
     ctx.fillText(`+${g.claimed} / +${g.maxReward}`,g.x,g.y+10);
 
-    ctx.fillStyle='#ffffff20';ctx.fillRect(g.x-50,g.y+25,100,6);
-    ctx.fillStyle='#ffd65a';ctx.fillRect(g.x-50,g.y+25,100*pct,6);
+    ctx.fillStyle='#ffffff20';
+    ctx.fillRect(g.x-52,g.y+28,104,6);
+    ctx.fillStyle='#ffd65a';
+    ctx.fillRect(g.x-52,g.y+28,104*pct,6);
   }
 
-  ctx.textAlign='center';
+  // Progression targets
   for(const t of targets){
     if(t.dead)continue;
+    ctx.textAlign='center';
     ctx.font=(t.kind==='gen'?'40px':'36px')+' Arial';
     ctx.fillText(t.emoji,t.x,t.y+11);
 
-    ctx.fillStyle='#ffffff20';ctx.fillRect(t.x-44,t.y-t.r-14,88,6);
-    ctx.fillStyle=t.kind==='gen'?'#ffd65a':'#61eea4';
-    ctx.fillRect(t.x-44,t.y-t.r-14,88*(t.hp/t.max),6);
+    ctx.fillStyle='#ffffff20';
+    ctx.fillRect(t.x-45,t.y-t.r-14,90,6);
+    ctx.fillStyle=t.kind==='gen'?'#ffd65a':'#63efa5';
+    ctx.fillRect(t.x-45,t.y-t.r-14,90*(t.hp/t.max),6);
 
-    ctx.font='900 11px Arial';ctx.fillStyle='#e7ecff';
-    ctx.fillText(t.label,t.x,t.y+t.r+25);
+    ctx.font='900 11px Arial';
+    ctx.fillStyle='#fff';
+    ctx.fillText(t.label,t.x,t.y+t.r+24);
   }
 
+  // Highly visible straight projectiles.
   for(const s of shots){
-    ctx.font='20px Arial';
-    ctx.fillText(s.emoji,s.x,s.y);
+    ctx.strokeStyle='#35dbff';
+    ctx.lineWidth=5;
+    ctx.shadowBlur=14;
+    ctx.shadowColor='#35dbff';
+    ctx.beginPath();
+    ctx.moveTo(s.x,s.y+18);
+    ctx.lineTo(s.x,s.y-16);
+    ctx.stroke();
+    ctx.shadowBlur=0;
   }
 
-  run.crewPicks?.forEach((id,i)=>{
-    const c=state.crew.find(x=>x.id===id);
-    ctx.font='18px Arial';
-    ctx.fillText(c.emoji,player.x+(i-(run.crewPicks.length-1)/2)*26,player.y+39+(Math.floor(i/5)*20));
-  });
+  for(const f of floaters){
+    ctx.globalAlpha=Math.max(0,f.life/.45);
+    ctx.textAlign='center';
+    ctx.font='1000 18px Arial';
+    ctx.fillStyle='#63efa5';
+    ctx.fillText(f.text,f.x,f.y);
+  }
+  ctx.globalAlpha=1;
 
-  ctx.beginPath();ctx.fillStyle='#35dbff';
-  ctx.shadowBlur=20;ctx.shadowColor='#35dbff';
-  ctx.arc(player.x,player.y,player.r+4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  // Player
+  ctx.beginPath();
+  ctx.fillStyle='#35dbff';
+  ctx.shadowBlur=20;
+  ctx.shadowColor='#35dbff';
+  ctx.arc(player.x,player.y,player.r+4,0,Math.PI*2);
+  ctx.fill();
+  ctx.shadowBlur=0;
 
-  ctx.beginPath();ctx.fillStyle='#18172f';
-  ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
-  ctx.font='21px Arial';ctx.fillText('🎧',player.x,player.y+7);
+  ctx.beginPath();
+  ctx.fillStyle='#18172f';
+  ctx.arc(player.x,player.y,player.r,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.textAlign='center';
+  ctx.font='21px Arial';
+  ctx.fillText('🎧',player.x,player.y+7);
 }
 
 function loop(now){
-  const dt=Math.min(.033,(now-last)/1000||0);last=now;
+  const dt=Math.min(.033,(now-last)/1000||0);
+  last=now;
   if(gameScreen.classList.contains('active')&&active&&!paused)update(dt);
   if(gameScreen.classList.contains('active'))draw();
   raf=requestAnimationFrame(loop);
 }
-resize();raf=requestAnimationFrame(loop);
+
+resize();
+raf=requestAnimationFrame(loop);
 </script>
 </body>
 </html>
