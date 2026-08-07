@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Pulse Alpha 0.8</title>
+<title>Neon Pulse Alpha 0.9</title>
 <style>
 :root{
   --bg:#050611;--panel:#11152a;--panel2:#191d3b;--pink:#ff3eb5;--cyan:#35dbff;
@@ -43,7 +43,7 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 <section id="menu" class="screen active">
   <div class="card">
     <div class="brand">NEON <span>PULSE</span></div>
-    <div class="version">ALPHA 0.8 • PAUSE / RESUME</div>
+    <div class="version">ALPHA 0.9 • ENCORE + PROGRESSION</div>
     <h1>PLAN THE BUILD.<br><span>BEAT THE WALL.</span></h1>
     <p>Gate rewards have no cap. The sign only shows the bonus you've earned so far. Each additional +1 costs more damage than the last, so you choose whether to grind one option or split your fire and earn both. The last gate pair fully resolves before progression begins. Merch Boxes and Generators never stop moving — if one reaches you, the run ends instantly.</p>
     <button id="playBtn" class="primary">▶ START SET</button>
@@ -54,13 +54,33 @@ h2,h3{margin-top:0}p{color:var(--muted)}
     <div class="card"><b>✨ Glow Sticks</b><div class="stat"><span id="bankGlow">0</span> banked</div></div>
   </div>
 
+  
   <div class="card">
-    <h3>Permanent Stats</h3>
+    <h3>🎟 Tour Budget <span style="font-size:11px;color:var(--muted)">(resets on Encore)</span></h3>
     <div class="grid">
       <button class="secondary" id="upgradeDamage">🎤 Damage Lv <span id="damageLv">1</span><br><small>Cost <span id="damageCost">50</span> 🎟</small></button>
       <button class="secondary" id="upgradeFire">⚡ Fire Rate Lv <span id="fireLv">1</span><br><small>Cost <span id="fireCost">50</span> 🎟</small></button>
+      <button class="secondary" id="upgradeCrit">💥 Crit Lv <span id="critLv">1</span><br><small>Cost <span id="critCost">75</span> 🎟</small></button>
+      <button class="secondary" id="upgradeCrewDamage">👥 Crew Power Lv <span id="crewDamageLv">1</span><br><small>Cost <span id="crewDamageCost">75</span> 🎟</small></button>
     </div>
   </div>
+
+  <div class="card">
+    <h3>✨ Career Growth <span style="font-size:11px;color:var(--muted)">(permanent)</span></h3>
+    <div class="grid">
+      <button class="secondary" id="legacyDamage">🌟 Legacy Damage Lv <span id="legacyDamageLv">1</span><br><small>Cost <span id="legacyDamageCost">25</span> ✨</small></button>
+      <button class="secondary" id="legacyWeapon">🎛 Starting Weapon Lv <span id="legacyStartWeaponLv">1</span><br><small>Cost <span id="legacyWeaponCost">30</span> ✨</small></button>
+      <button class="secondary" id="legacyBeat">🎵 Starting Beats <span id="legacyStartBeatLv">0</span><br><small>Cost <span id="legacyBeatCost">30</span> ✨</small></button>
+      <button class="secondary" disabled>🪩 Disco Ball Luck<br><small>Coming soon</small></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎤 Encore</h3>
+    <p class="stat">Encore #<span id="encoreCount">0</span>. Starting a new Encore resets your Ticket Stubs and all Tour Budget upgrades, but keeps Glow Sticks and Career Growth.</p>
+    <button class="primary" id="encoreBtn">START ENCORE</button>
+  </div>
+
 </section>
 
 <section id="gameScreen" class="screen">
@@ -82,18 +102,43 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 <script>
 const $=s=>document.querySelector(s);
 
-let state=JSON.parse(localStorage.getItem('neonPulseAlpha06')||'null')||{
-  stubs:0,glow:0,damageLv:1,fireLv:1,bestResolved:0
+let state=JSON.parse(localStorage.getItem('neonPulseAlpha09')||'null')||{
+  stubs:0,
+  glow:0,
+  damageLv:1,
+  fireLv:1,
+  critLv:1,
+  crewDamageLv:1,
+  legacyDamageLv:1,
+  legacyStartWeaponLv:1,
+  legacyStartBeatLv:0,
+  encore:0,
+  bestResolved:0
 };
 
 function saveState(){
-  localStorage.setItem('neonPulseAlpha06',JSON.stringify(state));
+  localStorage.setItem('neonPulseAlpha09',JSON.stringify(state));
   $('#bankStubs').textContent=state.stubs;
   $('#bankGlow').textContent=state.glow;
+
   $('#damageLv').textContent=state.damageLv;
   $('#fireLv').textContent=state.fireLv;
+  $('#critLv').textContent=state.critLv;
+  $('#crewDamageLv').textContent=state.crewDamageLv;
+
+  $('#legacyDamageLv').textContent=state.legacyDamageLv;
+  $('#legacyStartWeaponLv').textContent=state.legacyStartWeaponLv;
+  $('#legacyStartBeatLv').textContent=state.legacyStartBeatLv;
+  $('#encoreCount').textContent=state.encore;
+
   $('#damageCost').textContent=50+(state.damageLv-1)*35;
   $('#fireCost').textContent=50+(state.fireLv-1)*35;
+  $('#critCost').textContent=75+(state.critLv-1)*45;
+  $('#crewDamageCost').textContent=75+(state.crewDamageLv-1)*45;
+
+  $('#legacyDamageCost').textContent=25+(state.legacyDamageLv-1)*15;
+  $('#legacyWeaponCost').textContent=30+(state.legacyStartWeaponLv-1)*20;
+  $('#legacyBeatCost').textContent=30+state.legacyStartBeatLv*20;
 }
 saveState();
 
@@ -106,6 +151,48 @@ $('#upgradeFire').onclick=()=>{
   const cost=50+(state.fireLv-1)*35;
   if(state.stubs<cost)return alert('Not enough Ticket Stubs.');
   state.stubs-=cost;state.fireLv++;saveState();
+};
+
+$('#upgradeCrit').onclick=()=>{
+  const cost=75+(state.critLv-1)*45;
+  if(state.stubs<cost)return alert('Not enough Ticket Stubs.');
+  state.stubs-=cost;state.critLv++;saveState();
+};
+
+$('#upgradeCrewDamage').onclick=()=>{
+  const cost=75+(state.crewDamageLv-1)*45;
+  if(state.stubs<cost)return alert('Not enough Ticket Stubs.');
+  state.stubs-=cost;state.crewDamageLv++;saveState();
+};
+
+$('#legacyDamage').onclick=()=>{
+  const cost=25+(state.legacyDamageLv-1)*15;
+  if(state.glow<cost)return alert('Not enough Glow Sticks.');
+  state.glow-=cost;state.legacyDamageLv++;saveState();
+};
+
+$('#legacyWeapon').onclick=()=>{
+  const cost=30+(state.legacyStartWeaponLv-1)*20;
+  if(state.glow<cost)return alert('Not enough Glow Sticks.');
+  state.glow-=cost;state.legacyStartWeaponLv++;saveState();
+};
+
+$('#legacyBeat').onclick=()=>{
+  const cost=30+state.legacyStartBeatLv*20;
+  if(state.glow<cost)return alert('Not enough Glow Sticks.');
+  state.glow-=cost;state.legacyStartBeatLv++;saveState();
+};
+
+$('#encoreBtn').onclick=()=>{
+  if(!confirm('Start a new Encore? Ticket Stubs and all Tour Budget upgrades will reset. Glow Sticks and Career Growth will stay.')) return;
+  state.encore++;
+  state.stubs=0;
+  state.damageLv=1;
+  state.fireLv=1;
+  state.critLv=1;
+  state.crewDamageLv=1;
+  saveState();
+  alert('Encore started! Your Career Growth bonuses are still active.');
 };
 
 const canvas=$('#game'),ctx=canvas.getContext('2d');
@@ -152,8 +239,8 @@ function resetRunData(){
     pairsSpawned:0,
     pairsResolved:0,
     nextPairTimer:.45,
-    weaponLv:1,
-    beats:0,
+    weaponLv:state.legacyStartWeaponLv,
+    beats:state.legacyStartBeatLv,
     crew:0,
     stubs:0,
     glow:0,
@@ -178,8 +265,9 @@ function startRun(){
   raf=requestAnimationFrame(loop);
 }
 
-function permanentDamage(){return 8+(state.damageLv-1)*2.4}
+function permanentDamage(){return 8+(state.damageLv-1)*2.4+(state.legacyDamageLv-1)*1.6}
 function shotDamage(){return permanentDamage()+(run.weaponLv-1)*4.5}
+function effectiveShotDamage(){const critChance=.03+(state.critLv-1)*.015;return Math.random()<critChance?shotDamage()*2:shotDamage()}
 function fireInterval(){return Math.max(.11,.33-(state.fireLv-1)*.024-(run.weaponLv-1)*.006)}
 
 const gateDefs=[
@@ -306,7 +394,7 @@ function shootStraight(){
     y:player.y-20,
     vy:-760,
     life:1.55,
-    dmg:shotDamage()
+    dmg:effectiveShotDamage()
   });
 }
 
