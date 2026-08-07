@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Neon Pulse</title>
+<style>
+:root{--pink:#ff3fbf;--cyan:#31dcff;--purple:#8a5cff;--yellow:#ffd84a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#050611;font-family:Arial,Helvetica,sans-serif;color:white}
+#game{display:block;width:100vw;height:100vh;touch-action:none;background:linear-gradient(#17123a 0%,#080a18 55%,#05060d 100%)}
+#hud{position:fixed;inset:0;pointer-events:none}
+.top{display:flex;gap:8px;justify-content:space-between;padding:12px}
+.pill{background:#090b18d9;border:1px solid #ffffff26;border-radius:14px;padding:8px 11px;font-weight:800;box-shadow:0 4px 18px #0008}
+.bar{position:absolute;left:14px;right:14px;border-radius:999px;overflow:hidden;background:#ffffff18;border:1px solid #ffffff1c}
+#xpbar{top:58px;height:12px} #dropbar{top:77px;height:8px}
+.fill{height:100%;width:0}
+#xpfill{background:linear-gradient(90deg,var(--cyan),var(--pink))}
+#dropfill{background:linear-gradient(90deg,var(--yellow),#ff6b35)}
+#tip{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:#070913d9;border:1px solid #ffffff20;border-radius:999px;padding:8px 12px;font-size:12px;color:#d8dcff;white-space:nowrap}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#03040be9;padding:18px;z-index:5}
+#overlay.hidden{display:none}
+.card{width:min(460px,100%);background:linear-gradient(#161a37,#0b0e1d);border:1px solid #ffffff1f;border-radius:24px;padding:20px;box-shadow:0 20px 70px #000}
+.logo{font-weight:1000;font-size:42px;letter-spacing:-2px;line-height:.95}
+.logo span{color:var(--pink)}
+.sub{color:#afb8da;margin:8px 0 18px}
+button{width:100%;border:0;border-radius:15px;padding:14px 16px;font-size:16px;font-weight:900;color:white;background:linear-gradient(135deg,var(--pink),var(--purple));box-shadow:0 8px 24px #0007}
+button:active{transform:scale(.985)}
+.grid{display:grid;gap:10px;margin-top:12px}
+.upgrade{background:#11162d;border:1px solid #31dcff55;text-align:left}
+.upgrade b{display:block;font-size:17px}
+.upgrade small{display:block;margin-top:4px;color:#aeb7d9;font-weight:600}
+#toast{position:fixed;left:50%;top:105px;transform:translateX(-50%) translateY(-6px);padding:9px 14px;background:#090b18e8;border:1px solid #ffffff2a;border-radius:12px;font-weight:900;opacity:0;transition:.2s;z-index:4;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud">
+  <div class="top">
+    <div class="pill">🎧 LV <span id="lvl">1</span></div>
+    <div class="pill">🎵 <span id="beats">0</span></div>
+    <div class="pill">👥 <span id="crew">0</span></div>
+  </div>
+  <div class="bar" id="xpbar"><div class="fill" id="xpfill"></div></div>
+  <div class="bar" id="dropbar"><div class="fill" id="dropfill"></div></div>
+  <div id="tip">Drag left/right • Auto-fire ON</div>
+</div>
+<div id="toast"></div>
+<div id="overlay">
+  <div class="card" id="panel">
+    <div class="logo">NEON <span>PULSE</span></div>
+    <div class="sub">Rave. Run. Drop.</div>
+    <p>Survive the set, collect Beats, level your music weapons, recruit crew, and choose upgrade gates.</p>
+    <button id="start">START SET</button>
+  </div>
+</div>
+
+<script>
+const c=document.getElementById('game'),ctx=c.getContext('2d');
+const overlay=document.getElementById('overlay'),panel=document.getElementById('panel');
+const lvlEl=document.getElementById('lvl'),beatsEl=document.getElementById('beats'),crewEl=document.getElementById('crew');
+const xpfill=document.getElementById('xpfill'),dropfill=document.getElementById('dropfill'),toast=document.getElementById('toast');
+
+let W,H,dpr,last=0,running=false,paused=false,t=0,spawnTimer=0,gateTimer=0;
+let enemies=[],shots=[],notes=[],particles=[],gates=[];
+let level=1,beats=0,need=10,drop=0,dropMode=0,gateActive=false;
+let pointer=null;
+
+const p={x:0,y:0,r:18,hp:100,max:100,damage:12,fire:.45,ft:0,crit:.08,critMult:2,speed:390,crew:0,weapon:1};
+
+function resize(){
+  dpr=Math.min(2,devicePixelRatio||1);
+  W=innerWidth; H=innerHeight;
+  c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(!p.x){p.x=W/2;p.y=H*.82}
+}
+addEventListener('resize',resize);resize();
+
+function reset(){
+  enemies=[];shots=[];notes=[];particles=[];gates=[];
+  level=1;beats=0;need=10;drop=0;dropMode=0;t=0;spawnTimer=0;gateTimer=0;gateActive=false;
+  Object.assign(p,{x:W/2,y:H*.82,r:18,hp:100,max:100,damage:12,fire:.45,ft:0,crit:.08,critMult:2,speed:390,crew:0,weapon:1});
+  hud();
+}
+
+function start(){
+  reset();overlay.classList.add('hidden');running=true;paused=false;last=performance.now();requestAnimationFrame(loop);
+}
+document.getElementById('start').onclick=start;
+
+c.addEventListener('pointerdown',e=>{pointer=e.clientX;c.setPointerCapture(e.pointerId)});
+c.addEventListener('pointermove',e=>{if(pointer!==null)pointer=e.clientX});
+c.addEventListener('pointerup',()=>pointer=null);
+
+function hud(){
+  lvlEl.textContent=level;beatsEl.textContent=beats;crewEl.textContent=p.crew;
+  xpfill.style.width=Math.min(100,beats/need*100)+'%';
+  dropfill.style.width=Math.min(100,drop)+'%';
+}
+function showToast(s){
+  toast.textContent=s;toast.classList.add('show');
+  clearTimeout(showToast.tm);showToast.tm=setTimeout(()=>toast.classList.remove('show'),1000);
+}
+function rand(a,b){return a+Math.random()*(b-a)}
+function d(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+function spawnEnemy(){
+  let boss=Math.random()<.08;
+  let hp=(boss?55:22)*(1+t/55);
+  enemies.push({x:rand(25,W-25),y:-35,r:boss?25:16,hp,max:hp,speed:rand(70,115)*(1+t/180),boss,phase:rand(0,6.28)});
+}
+function nearest(){
+  let n=null,b=1e9;
+  for(const e of enemies){let q=d(p,e);if(q<b){b=q;n=e}}
+  return n;
+}
+function fire(){
+  const e=nearest();if(!e)return;
+  const dx=e.x-p.x,dy=e.y-p.y,l=Math.hypot(dx,dy)||1;
+  shots.push({x:p.x,y:p.y-10,vx:dx/l*700,vy:dy/l*700,r:7,dmg:p.damage,life:1.3});
+  for(let i=0;i<p.crew;i++){
+    const ang=(i-(p.crew-1)/2)*.18;
+    const cs=Math.cos(ang),sn=Math.sin(ang);
+    let vx=(dx/l*700)*cs-(dy/l*700)*sn;
+    let vy=(dx/l*700)*sn+(dy/l*700)*cs;
+    shots.push({x:p.x+(i-(p.crew-1)/2)*10,y:p.y+10,vx,vy,r:5,dmg:p.damage*.42,life:1.3,crew:true});
+  }
+}
+function burst(x,y,n=8){
+  for(let i=0;i<n;i++)particles.push({x,y,vx:rand(-150,150),vy:rand(-150,150),life:rand(.2,.55),r:rand(2,5)});
+}
+function gainBeat(){
+  beats++;drop=Math.min(100,drop+8);
+  if(drop>=100 && dropMode<=0){drop=0;dropMode=7;showToast('🔥 BASS DROP — 2× DAMAGE');}
+  if(beats>=need){beats-=need;level++;need=Math.floor(need*1.35+3);upgrade();}
+  hud();
+}
+const upgrades=[
+  ['🎤 Mic Level Up','+1 weapon level • +20% damage',()=>{p.weapon++;p.damage*=1.20}],
+  ['💥 Damage','+18% base damage',()=>p.damage*=1.18],
+  ['⚡ Higher BPM','14% faster attacks',()=>p.fire*=.86],
+  ['🎯 Crit Chance','+8% crit chance',()=>p.crit+=.08],
+  ['✖️ Crit Multiplier','+35% crit damage',()=>p.critMult+=.35],
+  ['👥 +DJ / Crew','Add a crew member',()=>p.crew++],
+  ['❤️ Stage Energy','+20 max HP and heal',()=>{p.max+=20;p.hp=Math.min(p.max,p.hp+35)}]
+];
+function upgrade(){
+  paused=true;
+  let opts=[...upgrades].sort(()=>Math.random()-.5).slice(0,3);
+  panel.innerHTML='<div class="logo" style="font-size:30px">CHOOSE <span>UPGRADE</span></div><div class="sub">Beat Level '+level+'</div><div class="grid">'+
+  opts.map((u,i)=>`<button class="upgrade" data-i="${i}"><b>${u[0]}</b><small>${u[1]}</small></button>`).join('')+'</div>';
+  overlay.classList.remove('hidden');
+  [...panel.querySelectorAll('.upgrade')].forEach(b=>b.onclick=()=>{opts[+b.dataset.i][2]();overlay.classList.add('hidden');paused=false;last=performance.now();hud()});
+}
+const gatePool=[
+  ['PYRO','+25% DMG','dmg'],['BASS','+15% FIRE','fire'],['VIP','+1 CREW','crew'],
+  ['MIC LVL','+1 WEAPON','weapon'],['CRIT','+7% CRIT','crit']
+];
+function spawnGates(){
+  gateActive=true;
+  let picks=[...gatePool].sort(()=>Math.random()-.5).slice(0,2);
+  gates=[{x:W*.28,y:-90,w:125,h:78,name:picks[0][0],sub:picks[0][1],kind:picks[0][2]},
+         {x:W*.72,y:-90,w:125,h:78,name:picks[1][0],sub:picks[1][1],kind:picks[1][2]}];
+}
+function useGate(g){
+  if(g.kind==='dmg')p.damage*=1.25;
+  if(g.kind==='fire')p.fire*=.85;
+  if(g.kind==='crew')p.crew++;
+  if(g.kind==='weapon'){p.weapon++;p.damage*=1.12}
+  if(g.kind==='crit')p.crit+=.07;
+  showToast('🚪 '+g.name+' '+g.sub);gates=[];gateActive=false;hud();
+}
+function gameOver(){
+  running=false;paused=true;
+  panel.innerHTML=`<div class="logo" style="font-size:34px">SET <span>OVER</span></div><div class="sub">You reached Beat Level ${level}</div>
+  <p>Weapon Lv ${p.weapon} • Crew ${p.crew}</p><button id="again">PLAY AGAIN</button>`;
+  overlay.classList.remove('hidden');document.getElementById('again').onclick=start;
+}
+
+function update(dt){
+  t+=dt;
+  if(pointer!==null)p.x+=Math.sign(pointer-p.x)*Math.min(Math.abs(pointer-p.x),p.speed*dt);
+  p.x=Math.max(24,Math.min(W-24,p.x));
+
+  spawnTimer-=dt;
+  if(spawnTimer<=0){spawnEnemy();spawnTimer=Math.max(.22,.72-t/180);}
+  gateTimer+=dt;
+  if(!gateActive && gateTimer>12){gateTimer=0;spawnGates()}
+
+  p.ft-=dt;
+  if(p.ft<=0){fire();p.ft=p.fire*(dropMode>0?.62:1)}
+  if(dropMode>0)dropMode-=dt;
+
+  for(const e of enemies){e.y+=e.speed*dt;e.x+=Math.sin(t*2+e.phase)*16*dt}
+  for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt}
+  for(const n of notes){
+    let dx=p.x-n.x,dy=p.y-n.y,l=Math.hypot(dx,dy);
+    if(l<110){n.x+=dx/l*260*dt;n.y+=dy/l*260*dt}
+    n.life-=dt;
+    if(l<25){n.dead=true;gainBeat()}
+  }
+  for(const q of particles){q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt}
+  for(const g of gates)g.y+=115*dt;
+
+  for(const s of shots){
+    if(s.life<=0)continue;
+    for(const e of enemies){
+      if(e.dead)continue;
+      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){
+        let crit=Math.random()<p.crit;
+        e.hp-=s.dmg*(dropMode>0?2:1)*(crit?p.critMult:1);s.life=0;
+        if(e.hp<=0){e.dead=true;notes.push({x:e.x,y:e.y,r:7,life:7});burst(e.x,e.y,e.boss?16:8)}
+        break;
+      }
+    }
+  }
+  for(const e of enemies){
+    if(!e.dead && Math.hypot(p.x-e.x,p.y-e.y)<p.r+e.r){
+      e.dead=true;p.hp-=e.boss?30:16;burst(p.x,p.y,10);if(p.hp<=0)gameOver();
+    }
+    if(e.y>H+40)e.dead=true;
+  }
+  for(const g of gates){
+    if(g.y+g.h/2>p.y-p.r && g.y-g.h/2<p.y+p.r && Math.abs(p.x-g.x)<g.w/2){useGate(g);break}
+    if(g.y>H+100){gates=[];gateActive=false;break}
+  }
+
+  enemies=enemies.filter(e=>!e.dead);
+  shots=shots.filter(s=>s.life>0&&s.x>-50&&s.x<W+50&&s.y>-80&&s.y<H+80);
+  notes=notes.filter(n=>!n.dead&&n.life>0);
+  particles=particles.filter(q=>q.life>0);
+  hud();
+}
+
+function neonLine(x1,y1,x2,y2,w){
+  ctx.strokeStyle='#31dcff22';ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  let grd=ctx.createLinearGradient(0,0,0,H);grd.addColorStop(0,'#191447');grd.addColorStop(.55,'#0b0d1c');grd.addColorStop(1,'#05060d');ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+  for(let i=0;i<12;i++){let y=(i*90+(t*110)%90)-90;neonLine(W*.16,y,W*.84,y,1)}
+  neonLine(W*.16,0,W*.08,H,2);neonLine(W*.84,0,W*.92,H,2);
+
+  if(dropMode>0){
+    ctx.fillStyle=`rgba(255,63,191,${.06+.03*Math.sin(t*16)})`;ctx.fillRect(0,0,W,H);
+  }
+
+  for(const g of gates){
+    ctx.shadowBlur=20;ctx.shadowColor=g.kind==='dmg'?'#ff783b':'#31dcff';
+    ctx.strokeStyle=g.kind==='dmg'?'#ff783b':'#31dcff';ctx.lineWidth=4;
+    ctx.strokeRect(g.x-g.w/2,g.y-g.h/2,g.w,g.h);
+    ctx.shadowBlur=0;ctx.textAlign='center';ctx.fillStyle='white';ctx.font='900 17px Arial';ctx.fillText(g.name,g.x,g.y-4);
+    ctx.font='800 12px Arial';ctx.fillStyle='#d8dcff';ctx.fillText(g.sub,g.x,g.y+18);
+  }
+
+  for(const n of notes){ctx.font='20px Arial';ctx.fillStyle='#31dcff';ctx.fillText('♪',n.x,n.y)}
+  for(const s of shots){
+    ctx.beginPath();ctx.shadowBlur=14;ctx.shadowColor=s.crew?'#8a5cff':'#ff3fbf';ctx.fillStyle=s.crew?'#8a5cff':'#ff3fbf';
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  }
+  for(const e of enemies){
+    ctx.beginPath();ctx.shadowBlur=14;ctx.shadowColor=e.boss?'#ff3fbf':'#31dcff';ctx.fillStyle=e.boss?'#6f174f':'#171d34';ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle='#ff476f';ctx.fillRect(e.x-7,e.y-3,14,6);
+    ctx.fillStyle='#ffffff22';ctx.fillRect(e.x-e.r,e.y-e.r-8,e.r*2,4);
+    ctx.fillStyle='#ff557d';ctx.fillRect(e.x-e.r,e.y-e.r-8,e.r*2*(e.hp/e.max),4);
+  }
+
+  for(const q of particles){ctx.globalAlpha=Math.max(0,q.life*2);ctx.fillStyle='#ff3fbf';ctx.fillRect(q.x,q.y,q.r,q.r)}ctx.globalAlpha=1;
+
+  // player DJ
+  ctx.shadowBlur=22;ctx.shadowColor='#31dcff';ctx.beginPath();ctx.fillStyle='#31dcff';ctx.arc(p.x,p.y,p.r+4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  ctx.beginPath();ctx.fillStyle='#1a1733';ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+  ctx.font='21px Arial';ctx.textAlign='center';ctx.fillText('🎧',p.x,p.y+7);
+  ctx.fillStyle='#ffffff1f';ctx.fillRect(p.x-32,p.y+27,64,6);
+  ctx.fillStyle='#ff3f8f';ctx.fillRect(p.x-32,p.y+27,64*(p.hp/p.max),6);
+
+  if(dropMode>0){ctx.font='900 22px Arial';ctx.fillStyle='#ffd84a';ctx.fillText('BASS DROP',W/2,120)}
+}
+
+function loop(now){
+  if(!running)return;
+  const dt=Math.min(.033,(now-last)/1000||0);last=now;
+  if(!paused)update(dt);
+  draw();requestAnimationFrame(loop);
+}
+draw();
+</script>
+</body>
+</html>
