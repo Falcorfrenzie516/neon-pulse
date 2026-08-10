@@ -4,6 +4,9 @@
 
   File location:
   text/endRun.js
+
+  Requires:
+  generators/exitButtons.js
 */
 
 window.EndRunText = (() => {
@@ -41,29 +44,6 @@ window.EndRunText = (() => {
     'PLAY IT BACK'
   ];
 
-  const exitButtons = [
-    'GET SOME REST',
-    'BACKSTAGE',
-    'BACK TO THE GREEN ROOM',
-    'LEAVE THE DECKS',
-    'CALL IT A NIGHT',
-    'END THE AFTERS',
-    'PACK UP THE GEAR',
-    'POWER DOWN',
-    'CLOCK OUT, DJ',
-    'EXIT THE BOOTH',
-    'LEAVE THE RAVE',
-    'SAVE YOUR EARS',
-    'TOUR BUS TIME',
-    'FIND THE TOUR BUS',
-    'GO TOUCH GRASS',
-    'HYDRATE & DISAPPEAR',
-    'LOG OFF THE DECKS',
-    '> RETURN: BACKSTAGE',
-    '> DJ.STATUS = OFFLINE',
-    'GO BE A PERSON'
-  ];
-
   function randomFrom(list) {
     return list[Math.floor(Math.random() * list.length)];
   }
@@ -77,7 +57,7 @@ window.EndRunText = (() => {
   }
 
   function getExitButton() {
-    return randomFrom(exitButtons);
+    return ExitButtons.random();
   }
 
   function getEndRunText() {
@@ -93,7 +73,6 @@ window.EndRunText = (() => {
     title,
     deaths,
     replayButtons,
-    exitButtons,
     getDeath,
     getReplayButton,
     getExitButton,
