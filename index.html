@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Pulse Alpha 1.8</title>
+<title>Neon Pulse Alpha 1.8 - Updated</title>
 <style>
 :root{
   --bg:#050611;--panel:#11152a;--panel2:#191d3b;--pink:#ff3eb5;--cyan:#35dbff;
@@ -71,12 +71,25 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 .neonCurrency .glowLine{color:#fff;text-shadow:0 0 7px #ff3eb5,0 0 14px #8b5cff}
 .result.staggered .card:first-child{transform:translateX(-7px)}
 .result.staggered .card:last-child{transform:translateX(7px)}
-.cancelCopy{width:94%;margin:12px auto;color:var(--muted);line-height:1.25}
-.cancelCopy b{color:#fff}
+
 @media(max-width:420px){
   .result.staggered .card:first-child{transform:translateX(-3px)}
   .result.staggered .card:last-child{transform:translateX(3px)}
 }
+
+
+.menuStory{text-align:center}
+.menuStory h1{text-align:center}
+.menuStory p{max-width:760px;margin:10px auto;color:var(--muted);line-height:1.35}
+.menuStoryPunch{margin-top:16px!important;color:#fff!important;line-height:1.5!important}
+.menuStoryPunch b:last-child{color:#fff;text-shadow:0 0 8px #ff3eb588}
+.cancelCopy{
+  width:94%;margin:12px auto;padding:15px 16px;border-radius:14px;
+  background:#151b39;border:1px solid #ffffff24;color:var(--muted);
+  line-height:1.3;text-align:center;box-shadow:inset 0 0 18px #ffffff08;
+}
+.cancelCopy b{color:#fff}
+.rangeNote{font-size:10px;color:var(--muted);margin-top:3px}
 
 </style>
 </head>
@@ -85,9 +98,16 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 <section id="menu" class="screen active">
   <div class="card">
     <div class="brand">NEON <span>PULSE</span></div>
-    <div class="version">ALPHA 1.8 • BACKSTAGE</div>
-    <h1>PLAN THE BUILD.<br><span>BEAT THE WALL.</span></h1>
-    <p>Stage rewards have no cap. Each sign only shows the bonus you've earned so far. Each additional +1 costs more damage than the last, so you choose whether to grind one option or split your fire and earn both. The final Stage fully resolves before Backstage begins. Backstage is an endurance push through increasingly tough Power Generators, with rarer Merch Boxes mixed into the run. Keep moving until your build can’t break what’s ahead.</p>
+    <div class="version">ALPHA 1.8 • RAVE UI</div>
+    <div class="menuStory">
+      <h1>EVERY GREAT DJ<br><span>HAS TO START SOMEWHERE.</span></h1>
+      <p>You have a laptop, a half-decent controller, enough camping gear to <i>probably</i> survive the weekend, and absolutely no idea what you're doing.</p>
+      <p>But you have a plan.</p>
+      <p>Follow the music. Chase the festivals. Play every basement, campground, warehouse, side stage, and suspiciously organized gathering that will let you near the decks.</p>
+      <p>Maybe someday your name will be at the top of the lineup.</p>
+      <p>For now, you're just hoping somebody remembers it.</p>
+      <p class="menuStoryPunch"><b>Pack the tent. Load the car.</b><br><b>Your first rave is waiting.</b></p>
+    </div>
     <button id="playBtn" class="primary">▶ START SET</button>
   </div>
 
@@ -102,6 +122,7 @@ h2,h3{margin-top:0}p{color:var(--muted)}
     <div class="grid">
       <button class="secondary" id="upgradeDamage">🎤 Damage Lv <span id="damageLv">1</span><br><small>Cost <span id="damageCost">50</span> 🎟</small></button>
       <button class="secondary" id="upgradeFire">⚡ Fire Rate Lv <span id="fireLv">1</span><br><small>Cost <span id="fireCost">50</span> 🎟</small></button>
+      <button class="secondary" id="upgradeRange">📡 Range Lv <span id="rangeLv">1</span><br><small><span id="rangePct">30%</span> screen • Cost <span id="rangeCost">55</span> 🎟</small></button>
       <button class="secondary" id="upgradeIncome">🎟 Ticket Gain Lv <span id="incomeLv">1</span><br><small><span id="incomePct">+0%</span> Stubs • Cost <span id="incomeCost">60</span> 🎟</small></button>
       <button class="secondary" id="upgradeCrit">💥 Crit Lv <span id="critLv">1</span><br><small>Cost <span id="critCost">75</span> 🎟</small></button>
       <button class="secondary" id="upgradeCrewDamage">👥 Crew Power Lv <span id="crewDamageLv">1</span><br><small>Cost <span id="crewDamageCost">75</span> 🎟</small></button>
@@ -150,6 +171,7 @@ let state=JSON.parse(localStorage.getItem('neonPulseAlpha09')||'null')||{
   glow:0,
   damageLv:1,
   fireLv:1,
+  rangeLv:1,
   incomeLv:1,
   critLv:1,
   crewDamageLv:1,
@@ -167,6 +189,7 @@ function normalizeState(){
     glow:0,
     damageLv:1,
     fireLv:1,
+    rangeLv:1,
     incomeLv:1,
     critLv:1,
     crewDamageLv:1,
@@ -217,6 +240,8 @@ function saveState(){
 
   $('#damageLv').textContent=state.damageLv;
   $('#fireLv').textContent=state.fireLv;
+  $('#rangeLv').textContent=state.rangeLv;
+  $('#rangePct').textContent=Math.round(rangeScreenFraction()*100)+'%';
   $('#incomeLv').textContent=state.incomeLv;
   $('#incomePct').textContent='+'+((state.incomeLv-1)*10)+'%';
   $('#critLv').textContent=state.critLv;
@@ -229,6 +254,7 @@ function saveState(){
 
   $('#damageCost').textContent=50+(state.damageLv-1)*35;
   $('#fireCost').textContent=50+(state.fireLv-1)*35;
+  $('#rangeCost').textContent=55+(state.rangeLv-1)*40;
   $('#incomeCost').textContent=60+(state.incomeLv-1)*40;
   $('#critCost').textContent=75+(state.critLv-1)*45;
   $('#crewDamageCost').textContent=75+(state.crewDamageLv-1)*45;
@@ -239,6 +265,7 @@ function saveState(){
 
   const damageCost=50+(state.damageLv-1)*35;
   const fireCost=50+(state.fireLv-1)*35;
+  const rangeCost=55+(state.rangeLv-1)*40;
   const incomeCost=60+(state.incomeLv-1)*40;
   const critCost=75+(state.critLv-1)*45;
   const crewCost=75+(state.crewDamageLv-1)*45;
@@ -249,6 +276,7 @@ function saveState(){
 
   setUpgradeAvailability('#upgradeDamage',state.stubs,damageCost);
   setUpgradeAvailability('#upgradeFire',state.stubs,fireCost);
+  setUpgradeAvailability('#upgradeRange',state.stubs,rangeCost);
   setUpgradeAvailability('#upgradeIncome',state.stubs,incomeCost);
   setUpgradeAvailability('#upgradeCrit',state.stubs,critCost);
   setUpgradeAvailability('#upgradeCrewDamage',state.stubs,crewCost);
@@ -268,6 +296,11 @@ $('#upgradeFire').onclick=()=>{
   const cost=50+(state.fireLv-1)*35;
   if(state.stubs<cost)return;
   state.stubs-=cost;state.fireLv++;saveState();
+};
+$('#upgradeRange').onclick=()=>{
+  const cost=55+(state.rangeLv-1)*40;
+  if(state.stubs<cost)return;
+  state.stubs-=cost;state.rangeLv++;saveState();
 };
 
 $('#upgradeIncome').onclick=()=>{
@@ -314,6 +347,7 @@ $('#encoreBtn').onclick=()=>{
   state.stubs=0;
   state.damageLv=1;
   state.fireLv=1;
+  state.rangeLv=1;
   state.incomeLv=1;
   state.critLv=1;
   state.crewDamageLv=1;
@@ -442,6 +476,13 @@ function permanentDamage(){return 8+(state.damageLv-1)*2.4+(state.legacyDamageLv
 function shotDamage(){return permanentDamage()+(run.weaponLv-1)*4.5}
 function effectiveShotDamage(){const critChance=.03+(state.critLv-1)*.015;return Math.random()<critChance?shotDamage()*2:shotDamage()}
 function fireInterval(){return Math.max(.11,.33-(state.fireLv-1)*.024-(run.weaponLv-1)*.006)}
+function rangeScreenFraction(){
+  // Starts intentionally short and grows with the Range stat.
+  // Lv 1 = 30% of screen; each level adds 10%, capped at 95%.
+  return Math.min(.95,.30+(Math.max(1,state.rangeLv)-1)*.10);
+}
+function shotRange(){return H*rangeScreenFraction()}
+
 
 const gateDefs=[
   ['weapon','SOUND CHECK','🎛️',36],
@@ -558,29 +599,42 @@ function shouldSpawnMerch(){
 
 function spawnBackstageRow(first=false){
   const row=run.backstageRow++;
-  const merch=shouldSpawnMerch();
+  const slotCount=Math.max(5,Math.min(9,Math.floor(W/105)));
+  const leftPad=Math.max(42,W*.07);
+  const rightPad=W-leftPad;
+  const spacing=(rightPad-leftPad)/Math.max(1,slotCount-1);
 
-  if(merch){
+  // Merch is rare: roughly one opportunity every few rows, with a pity boost.
+  // This keeps a normal deep run around the intended 5–10 total merch boxes.
+  const canMerch=run.backstageMerch<10;
+  const merchThisRow=canMerch && shouldSpawnMerch();
+  const merchSlot=merchThisRow ? Math.floor(Math.random()*slotCount) : -1;
+
+  if(merchThisRow){
     run.backstageMerch++;
     run.lastMerchRow=row;
   }
 
-  const hp=merch
-    ? Math.round(backstageGeneratorHP(row)*.58)
-    : backstageGeneratorHP(row);
+  for(let i=0;i<slotCount;i++){
+    const merch=i===merchSlot;
+    const hp=merch
+      ? Math.round(backstageGeneratorHP(row)*.58)
+      : backstageGeneratorHP(row);
 
-  targets.push({
-    kind:merch?'merch':'gen',
-    emoji:merch?'📦':'⚡',
-    label:merch?'MERCH BOX':'POWER GENERATOR',
-    hp,max:hp,
-    r:merch?27:35,
-    x:W/2,
-    y:first?-80:-105,
-    row,
-    dead:false
-  });
-  run.totalProgressTargets++;
+    targets.push({
+      kind:merch?'merch':'gen',
+      emoji:merch?'📦':'⚡',
+      label:merch?'MERCH BOX':'POWER GENERATOR',
+      hp,max:hp,
+      r:merch?24:29,
+      x:leftPad+i*spacing,
+      y:first?-82:-105,
+      row,
+      slot:i,
+      dead:false
+    });
+    run.totalProgressTargets++;
+  }
 }
 
 function rewardTarget(t){
@@ -598,6 +652,8 @@ function shootStraight(){
   shots.push({
     x:player.x,
     y:player.y-20,
+    startY:player.y-20,
+    maxRange:shotRange(),
     vy:-760,
     life:1.55,
     dmg:effectiveShotDamage()
@@ -665,7 +721,7 @@ function failRun(target){
   showOverlay(`<div class="card">
     <div class="uiBanner">💀 TOUR CANCELLED</div>
     <div class="uiBanner sub">${death.title}</div>
-    <div class="cancelCopy">${death.body}<br><b>${death.punch}</b></div>
+    <div class="cancelCopy" role="note">${death.body}<br><b>${death.punch}</b></div>
 
     <div class="result staggered">
       <div class="card">
@@ -740,7 +796,7 @@ function updateHud(){
   }else{
     $('#phaseLabel').textContent=`BACKSTAGE • ROW ${Math.max(1,run.backstageRow)} • 📦 ${run.backstageMerch}`;
     // Backstage is intentionally open-ended; pulse the bar instead of pretending it has an endpoint.
-    const pulse=35 + ((run.progressionDone%10)/10)*60;
+    const pulse=35 + ((run.backstageRow%10)/10)*60;
     $('#runProgress').style.width=pulse+'%';
   }
 }
@@ -777,33 +833,44 @@ function update(dt){
       beginProgression();
     }
   }else{
-    // BACKSTAGE: endless forward push. Nothing stops; difficulty comes from deeper rows.
-    const speed=Math.min(245,185 + run.progressionDone*2.2);
+    // BACKSTAGE: endless rows across the full stage.
+    // Every row advances together; deeper rows get tougher.
+    const speed=Math.min(245,178 + run.backstageRow*1.65);
 
     for(const t of targets){
       if(!t.dead)t.y+=speed*dt;
     }
 
-    // Keep the next obstacle coming as the current one moves downstage.
     const living=targets.filter(t=>!t.dead);
-    const furthestUp=living.length ? Math.min(...living.map(t=>t.y)) : H;
-    if(living.length<3 && furthestUp>105){
+
+    // Spawn another full row once the newest row has moved far enough into view.
+    const activeRows=[...new Set(living.map(t=>t.row))];
+    const newestRow=activeRows.length ? Math.max(...activeRows) : -1;
+    const newestTargets=living.filter(t=>t.row===newestRow);
+    const newestY=newestTargets.length ? Math.min(...newestTargets.map(t=>t.y)) : H;
+
+    if(activeRows.length<4 && newestY>118){
       spawnBackstageRow(false);
     }
 
-    const impact=living.find(t=>t.y+t.r>=player.y-player.r);
+    // A generator/merch box only ends the run if it reaches the player in the same lane.
+    const impact=living.find(t=>
+      t.y+t.r>=player.y-player.r &&
+      Math.abs(t.x-player.x)<t.r+player.r
+    );
     if(impact){
       failRun(impact);
       return;
     }
 
-    // Clean dead targets well behind the action; Backstage itself has no automatic finish.
+    // Keep dead targets briefly for clear feedback, then remove them.
     targets=targets.filter(t=>!t.dead || t.y<player.y+100);
   }
 
   for(const s of shots){
     s.y+=s.vy*dt;
     s.life-=dt;
+    if((s.startY-s.y)>=s.maxRange)s.life=0;
   }
 
   for(const f of floaters){
@@ -832,7 +899,7 @@ function update(dt){
       }
     }else{
       const candidates=targets
-        .filter(t=>!t.dead && Math.abs(s.x-t.x)<t.r+7 && Math.abs(s.y-t.y)<t.r+12)
+        .filter(t=>!t.dead && Math.abs(s.x-t.x)<t.r+8 && Math.abs(s.y-t.y)<t.r+14)
         .sort((a,b)=>b.y-a.y);
 
       if(candidates.length){
