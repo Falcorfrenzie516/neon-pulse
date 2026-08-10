@@ -1,9 +1,13 @@
 if (typeof GeneratorSystem === 'undefined') {
-  throw new Error('GeneratorSystem is missing. Load generators/generators.js before game.js.');
+  throw new Error(
+    'GeneratorSystem is missing. Load generators/generators.js before game.js.'
+  );
 }
 
 if (typeof GateSystem === 'undefined') {
-  throw new Error('GateSystem is missing. Load generators/gate.js before game.js.');
+  throw new Error(
+    'GateSystem is missing. Load generators/gate.js before game.js.'
+  );
 }
 
 const $ = s => document.querySelector(s);
@@ -32,15 +36,38 @@ const defaultState = {
   glow: 0,
   balls: 0,
   bestStage: 0,
+
   stats: {
     damage: 1,
     health: 1,
     crit: 1
   },
+
   crew: [
-    { id: 'animal', name: 'Animal', role: 'Drummer', emoji: '🥁', level: 1, unlocked: true },
-    { id: 'echo', name: 'Echo', role: 'Vocalist', emoji: '🎤', level: 1, unlocked: true },
-    { id: 'lux', name: 'Lux', role: 'Lighting Tech', emoji: '💡', level: 1, unlocked: true }
+    {
+      id: 'animal',
+      name: 'Animal',
+      role: 'Drummer',
+      emoji: '🥁',
+      level: 1,
+      unlocked: true
+    },
+    {
+      id: 'echo',
+      name: 'Echo',
+      role: 'Vocalist',
+      emoji: '🎤',
+      level: 1,
+      unlocked: true
+    },
+    {
+      id: 'lux',
+      name: 'Lux',
+      role: 'Lighting Tech',
+      emoji: '💡',
+      level: 1,
+      unlocked: true
+    }
   ]
 };
 
@@ -63,7 +90,10 @@ function refreshMeta() {
 function show(id) {
   screens.forEach(x => x.classList.remove('active'));
   $('#' + id).classList.add('active');
-  if (id === 'gameScreen') resize();
+
+  if (id === 'gameScreen') {
+    resize();
+  }
 }
 
 $$('.navCard').forEach(b => {
@@ -78,6 +108,10 @@ $('#playBtn').onclick = () => {
   show('gameScreen');
   startRun();
 };
+
+// =========================================================
+// MENU
+// =========================================================
 
 function renderMenus() {
   const stats = [
@@ -94,11 +128,18 @@ function renderMenus() {
       <div class="card statRow">
         <div class="row">
           <div class="avatar">${ico}</div>
+
           <div class="grow">
             <b>${name} Lv ${lv}</b>
             <div class="tiny muted">${desc}</div>
           </div>
-          <button class="secondary" onclick="buyStat('${key}',${cost})">${cost} 🎟</button>
+
+          <button
+            class="secondary"
+            onclick="buyStat('${key}',${cost})"
+          >
+            ${cost} 🎟
+          </button>
         </div>
       </div>
     `;
@@ -111,6 +152,7 @@ function renderMenus() {
       <div class="card crewRow">
         <div class="row">
           <div class="avatar">${c.emoji}</div>
+
           <div class="grow">
             <b>${c.name}</b>
             <span class="badge">${c.role}</span>
@@ -121,8 +163,19 @@ function renderMenus() {
         <div style="height:8px"></div>
 
         <div class="grid">
-          <button class="secondary" onclick="renameCrew('${c.id}')">✏️ Rename</button>
-          <button class="secondary" onclick="upgradeCrew('${c.id}',${cost})">${cost} ✨</button>
+          <button
+            class="secondary"
+            onclick="renameCrew('${c.id}')"
+          >
+            ✏️ Rename
+          </button>
+
+          <button
+            class="secondary"
+            onclick="upgradeCrew('${c.id}',${cost})"
+          >
+            ${cost} ✨
+          </button>
         </div>
       </div>
     `;
@@ -137,17 +190,28 @@ function renderMenus() {
   ];
 
   ui.festivalProgress.innerHTML = festivals.map(([name, req, ico]) => `
-    <div class="card festivalRow" style="opacity:${state.bestStage >= req ? 1 : .45}">
+    <div
+      class="card festivalRow"
+      style="opacity:${state.bestStage >= req ? 1 : .45}"
+    >
       <b>${ico} ${name}</b>
+
       <div class="tiny muted">
-        ${state.bestStage >= req ? 'Reached' : 'Reach stage ' + req + ' to unlock'}
+        ${
+          state.bestStage >= req
+            ? 'Reached'
+            : 'Reach stage ' + req + ' to unlock'
+        }
       </div>
     </div>
   `).join('');
 }
 
 window.buyStat = (key, cost) => {
-  if (state.stubs < cost) return alert('Not enough Ticket Stubs.');
+  if (state.stubs < cost) {
+    return alert('Not enough Ticket Stubs.');
+  }
+
   state.stubs -= cost;
   state.stats[key]++;
   save();
@@ -164,14 +228,23 @@ window.renameCrew = id => {
 };
 
 window.upgradeCrew = (id, cost) => {
-  if (state.glow < cost) return alert('Not enough Glow Sticks.');
+  if (state.glow < cost) {
+    return alert('Not enough Glow Sticks.');
+  }
+
   state.glow -= cost;
   state.crew.find(x => x.id === id).level++;
   save();
 };
 
+// =========================================================
+// DISCO BALL SHOP
+// =========================================================
+
 $('#buyBall').onclick = () => {
-  if (state.stubs < 75) return alert('You need 75 Ticket Stubs.');
+  if (state.stubs < 75) {
+    return alert('You need 75 Ticket Stubs.');
+  }
 
   state.stubs -= 75;
   state.balls++;
@@ -181,17 +254,29 @@ $('#buyBall').onclick = () => {
 
   if (roll < .38) {
     const n = 50 + Math.floor(Math.random() * 76);
+
     state.stubs += n;
     msg = `🎟 ${n} Ticket Stubs`;
+
   } else if (roll < .68) {
     const n = 15 + Math.floor(Math.random() * 31);
+
     state.glow += n;
     msg = `✨ ${n} Glow Sticks`;
+
   } else if (roll < .88) {
     msg = '👕 Merch Drop: Neon Warehouse Hoodie';
+
   } else {
-    const c = state.crew[Math.floor(Math.random() * state.crew.length)];
+    const c =
+      state.crew[
+        Math.floor(
+          Math.random() * state.crew.length
+        )
+      ];
+
     c.level++;
+
     msg = `⭐ Crew Upgrade: ${c.name} +1 Level`;
   }
 
@@ -204,6 +289,10 @@ $('#buyBall').onclick = () => {
 
   save();
 };
+
+// =========================================================
+// CANVAS / GAME
+// =========================================================
 
 const canvas = $('#game');
 const ctx = canvas.getContext('2d');
@@ -229,23 +318,44 @@ let gates = [];
 let targets = [];
 let run = {};
 
+// =========================================================
+// RESIZE / INPUT
+// =========================================================
+
 function resize() {
   const r = canvas.getBoundingClientRect();
 
   W = r.width;
   H = r.height;
-  dpr = Math.min(2, devicePixelRatio || 1);
+
+  dpr = Math.min(
+    2,
+    devicePixelRatio || 1
+  );
 
   canvas.width = W * dpr;
   canvas.height = H * dpr;
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
 
   player.y = H * .82;
-  if (!player.x) player.x = W / 2;
+
+  if (!player.x) {
+    player.x = W / 2;
+  }
 }
 
-addEventListener('resize', resize);
+addEventListener(
+  'resize',
+  resize
+);
 
 canvas.addEventListener('pointerdown', e => {
   pointer = e.clientX;
@@ -253,12 +363,18 @@ canvas.addEventListener('pointerdown', e => {
 });
 
 canvas.addEventListener('pointermove', e => {
-  if (pointer !== null) pointer = e.clientX;
+  if (pointer !== null) {
+    pointer = e.clientX;
+  }
 });
 
 canvas.addEventListener('pointerup', () => {
   pointer = null;
 });
+
+// =========================================================
+// RUN START
+// =========================================================
 
 function startRun() {
   resize();
@@ -266,23 +382,43 @@ function startRun() {
   run = {
     stage: 0,
     progress: 0,
+
     phase: 'run',
+
     weaponLv: 1,
     beats: 0,
     beatBonus: 'Local',
+
     stubs: 0,
     glow: 0,
 
-    hp: 100 + (state.stats.health - 1) * 10,
-    maxHp: 100 + (state.stats.health - 1) * 10,
-    damage: 12 * (1 + (state.stats.damage - 1) * .08),
-    crit: .05 + (state.stats.crit - 1) * .015,
+    hp:
+      100 +
+      (state.stats.health - 1) * 10,
+
+    maxHp:
+      100 +
+      (state.stats.health - 1) * 10,
+
+    damage:
+      12 *
+      (
+        1 +
+        (state.stats.damage - 1) * .08
+      ),
+
+    crit:
+      .05 +
+      (state.stats.crit - 1) * .015,
 
     crew: [],
+
     gateClock: 0,
     enemyClock: 0,
     fireClock: 0,
+
     distance: 0,
+
     progressionDone: 0
   };
 
@@ -300,31 +436,56 @@ function startRun() {
 
   showOverlay(`
     <div class="card">
-      <div class="tiny muted">FESTIVAL 1</div>
-      <h2>🪩 Basement Rave</h2>
+      <div class="tiny muted">
+        FESTIVAL 1
+      </div>
+
+      <h2>
+        🪩 Basement Rave
+      </h2>
+
       <p>
-        Pick tracks, level your mic, build Beats, collect rewards,
-        then break through the progression zone.
+        Pick tracks, level your mic, build Beats,
+        collect rewards, then break through the
+        progression zone.
       </p>
-      <button class="primary" onclick="resumeRun()">START SET</button>
+
+      <button
+        class="primary"
+        onclick="resumeRun()"
+      >
+        START SET
+      </button>
     </div>
   `);
 
   last = performance.now();
 
   cancelAnimationFrame(raf);
-  raf = requestAnimationFrame(loop);
+
+  raf =
+    requestAnimationFrame(loop);
 }
 
 window.resumeRun = () => {
-  ui.overlay.classList.add('hidden');
+  ui.overlay
+    .classList
+    .add('hidden');
+
   paused = false;
-  last = performance.now();
+
+  last =
+    performance.now();
 };
 
 function showOverlay(html) {
-  ui.overlay.innerHTML = html;
-  ui.overlay.classList.remove('hidden');
+  ui.overlay.innerHTML =
+    html;
+
+  ui.overlay
+    .classList
+    .remove('hidden');
+
   paused = true;
 }
 
@@ -333,31 +494,35 @@ function showOverlay(html) {
 // =========================================================
 
 function spawnTrackChoice() {
-  if (gates.length) return;
-  gates = GateSystem.createPair(W);
+  if (gates.length) {
+    return;
+  }
+
+  gates =
+    GateSystem.createPair(W);
 }
 
 function useGate(g) {
   gates = [];
 
-  if (g.type === 'weapon') {
-    run.weaponLv++;
+  const result =
+    GateSystem.apply(
+      g,
+      run
+    );
+
+  if (!result) {
+    updateHud();
+    return;
   }
 
-  if (g.type === 'beats') {
-    run.beats++;
+  // Speaker gate increased Beats.
+  if (result.type === 'beats') {
     updateBeatBonus();
   }
 
-  if (g.type === 'stubs') {
-    run.stubs += 20 + run.beats * 6;
-  }
-
-  if (g.type === 'glow') {
-    run.glow += 8 + run.beats * 3;
-  }
-
-  if (g.type === 'crew') {
+  // Crew gate needs the crew selection UI.
+  if (result.action === 'chooseCrew') {
     chooseCrew();
   }
 
@@ -368,11 +533,15 @@ function updateBeatBonus() {
   const b = run.beats;
 
   run.beatBonus =
-    b < 3 ? 'Local' :
-    b < 6 ? 'Club' :
-    b < 9 ? 'Festival' :
-    b < 13 ? 'Headliner' :
-    'Iconic';
+    b < 3
+      ? 'Local'
+      : b < 6
+        ? 'Club'
+        : b < 9
+          ? 'Festival'
+          : b < 13
+            ? 'Headliner'
+            : 'Iconic';
 }
 
 // =========================================================
@@ -380,18 +549,37 @@ function updateBeatBonus() {
 // =========================================================
 
 function chooseCrew() {
-  const buttons = state.crew.map(c => `
-    <button class="choice" onclick="pickCrew('${c.id}')">
-      <b>${c.emoji} ${c.name}</b>
-      <small>${c.role} • permanent Lv ${c.level}</small>
-    </button>
-  `).join('');
+  const buttons =
+    state.crew.map(c => `
+      <button
+        class="choice"
+        onclick="pickCrew('${c.id}')"
+      >
+        <b>
+          ${c.emoji} ${c.name}
+        </b>
+
+        <small>
+          ${c.role}
+          • permanent Lv
+          ${c.level}
+        </small>
+      </button>
+    `).join('');
 
   showOverlay(`
     <div class="card">
-      <h2>👥 Choose Crew</h2>
-      <p>Your selected crew joins this run.</p>
-      <div class="choiceGrid">${buttons}</div>
+      <h2>
+        👥 Choose Crew
+      </h2>
+
+      <p>
+        Your selected crew joins this run.
+      </p>
+
+      <div class="choiceGrid">
+        ${buttons}
+      </div>
     </div>
   `);
 }
@@ -399,12 +587,22 @@ function chooseCrew() {
 window.pickCrew = id => {
   if (run.crew.length < 3) {
     run.crew.push(id);
+
   } else {
-    run.crew[Math.floor(Math.random() * run.crew.length)] = id;
+    run.crew[
+      Math.floor(
+        Math.random() *
+        run.crew.length
+      )
+    ] = id;
   }
 
-  ui.overlay.classList.add('hidden');
+  ui.overlay
+    .classList
+    .add('hidden');
+
   paused = false;
+
   updateHud();
 };
 
@@ -414,6 +612,7 @@ window.pickCrew = id => {
 
 function beginProgression() {
   run.phase = 'progression';
+
   run.progressionDone = 0;
   run.generatorRows = 8;
 
@@ -425,17 +624,30 @@ function beginProgression() {
   for (let i = 0; i < 3; i++) {
     targets.push({
       kind: 'merch',
-      x: W * (.25 + i * .25),
-      y: -160 - i * 240,
+
+      x:
+        W *
+        (
+          .25 +
+          i * .25
+        ),
+
+      y:
+        -160 -
+        i * 240,
+
       r: 24,
+
       hp: 30,
       max: 30,
+
       emoji: '📦',
+
       dead: false
     });
   }
 
-  // Eight generator rows.
+  // 4 generators across.
   const lanePositions = [
     W * .26,
     W * .42,
@@ -443,16 +655,21 @@ function beginProgression() {
     W * .74
   ];
 
-  // Leaves a full empty row between generator rows.
+  // One empty row between generator rows.
   const rowGap = 300;
 
-  for (let row = 0; row < 8; row++) {
+  for (
+    let row = 0;
+    row < 8;
+    row++
+  ) {
     for (const x of lanePositions) {
       targets.push(
         GeneratorSystem.create(
           row,
           x,
-          -520 - row * rowGap,
+          -520 -
+          row * rowGap,
           run.beats
         )
       );
@@ -462,34 +679,60 @@ function beginProgression() {
   updateHud();
 }
 
+// =========================================================
+// TARGET REWARDS
+// =========================================================
+
 function rewardTarget(t) {
   if (t.kind === 'merch') {
     const roll = Math.random();
 
     if (roll < .45) {
-      run.stubs += 30 + run.beats * 5;
+      run.stubs +=
+        30 +
+        run.beats * 5;
+
     } else if (roll < .8) {
-      run.glow += 12 + run.beats * 2;
+      run.glow +=
+        12 +
+        run.beats * 2;
+
     } else {
       state.balls++;
     }
+
   } else {
     const roll = Math.random();
 
     if (roll < .35) {
-      run.stubs += 45 + run.stage * 10;
+      run.stubs +=
+        45 +
+        run.stage * 10;
+
     } else if (roll < .6) {
-      run.glow += 18 + run.stage * 3;
+      run.glow +=
+        18 +
+        run.stage * 3;
+
     } else if (roll < .66) {
       state.balls++;
     }
   }
 }
 
+// =========================================================
+// FINISH STAGE
+// =========================================================
+
 function finishStage() {
   run.stage++;
 
-  state.bestStage = Math.max(state.bestStage, run.stage);
+  state.bestStage =
+    Math.max(
+      state.bestStage,
+      run.stage
+    );
+
   state.stubs += run.stubs;
   state.glow += run.glow;
 
@@ -499,30 +742,57 @@ function finishStage() {
   save();
 
   const festival =
-    run.stage < 3 ? 'Basement Rave' :
-    run.stage < 6 ? 'Warehouse Rave' :
-    run.stage < 10 ? 'Neon Harbor' :
-    'Electric Forest';
+    run.stage < 3
+      ? 'Basement Rave'
+      : run.stage < 6
+        ? 'Warehouse Rave'
+        : run.stage < 10
+          ? 'Neon Harbor'
+          : 'Electric Forest';
 
   showOverlay(`
     <div class="card">
-      <div class="tiny muted">STAGE CLEARED</div>
-      <h2>🎪 ${festival}</h2>
-
-      <p>You pushed deeper into the festival circuit.</p>
-
-      <div class="card" style="margin-bottom:10px">
-        <b>Career Progress: Stage ${run.stage}</b>
-        <div class="tiny muted">Best: ${state.bestStage}</div>
+      <div class="tiny muted">
+        STAGE CLEARED
       </div>
 
-      <button class="primary" onclick="nextStage()">NEXT STAGE</button>
+      <h2>
+        🎪 ${festival}
+      </h2>
+
+      <p>
+        You pushed deeper into
+        the festival circuit.
+      </p>
+
+      <div
+        class="card"
+        style="margin-bottom:10px"
+      >
+        <b>
+          Career Progress:
+          Stage ${run.stage}
+        </b>
+
+        <div class="tiny muted">
+          Best:
+          ${state.bestStage}
+        </div>
+      </div>
+
+      <button
+        class="primary"
+        onclick="nextStage()"
+      >
+        NEXT STAGE
+      </button>
     </div>
   `);
 }
 
 window.nextStage = () => {
   run.phase = 'run';
+
   run.distance = 0;
   run.gateClock = 0;
   run.enemyClock = 0;
@@ -530,7 +800,10 @@ window.nextStage = () => {
 
   targets = [];
 
-  ui.overlay.classList.add('hidden');
+  ui.overlay
+    .classList
+    .add('hidden');
+
   paused = false;
 
   updateHud();
@@ -546,33 +819,57 @@ function die() {
 
   state.stubs += run.stubs;
   state.glow += run.glow;
-  state.bestStage = Math.max(state.bestStage, run.stage);
+
+  state.bestStage =
+    Math.max(
+      state.bestStage,
+      run.stage
+    );
 
   save();
 
   showOverlay(`
     <div class="card">
-      <h2>💀 SET OVER</h2>
+      <h2>
+        💀 SET OVER
+      </h2>
 
       <p>
         You made it to Stage ${run.stage}.
-        Current-run upgrades reset; permanent stats stay.
+        Current-run upgrades reset;
+        permanent stats stay.
       </p>
 
       <div class="grid">
-        <div class="card"><b>🎟 +${run.stubs}</b></div>
-        <div class="card"><b>✨ +${run.glow}</b></div>
+        <div class="card">
+          <b>
+            🎟 +${run.stubs}
+          </b>
+        </div>
+
+        <div class="card">
+          <b>
+            ✨ +${run.glow}
+          </b>
+        </div>
       </div>
 
       <div style="height:10px"></div>
 
-      <button class="primary" onclick="backToMenu()">RETURN TO HUB</button>
+      <button
+        class="primary"
+        onclick="backToMenu()"
+      >
+        RETURN TO HUB
+      </button>
     </div>
   `);
 }
 
 window.backToMenu = () => {
-  ui.overlay.classList.add('hidden');
+  ui.overlay
+    .classList
+    .add('hidden');
 
   show('menu');
 
@@ -585,15 +882,26 @@ window.backToMenu = () => {
 // =========================================================
 
 function spawnEnemy() {
-  const hp = 20 + run.stage * 8;
+  const hp =
+    20 +
+    run.stage * 8;
 
   enemies.push({
-    x: 30 + Math.random() * (W - 60),
+    x:
+      30 +
+      Math.random() *
+      (W - 60),
+
     y: -35,
+
     r: 16,
+
     hp,
     max: hp,
-    speed: 88 + run.stage * 5
+
+    speed:
+      88 +
+      run.stage * 5
   });
 }
 
@@ -605,55 +913,161 @@ function fire() {
   const target = [
     ...targets.filter(t => !t.dead),
     ...enemies.filter(e => !e.dead)
-  ].sort((a, b) =>
-    Math.hypot(player.x - a.x, player.y - a.y) -
-    Math.hypot(player.x - b.x, player.y - b.y)
+  ].sort(
+    (a, b) =>
+      Math.hypot(
+        player.x - a.x,
+        player.y - a.y
+      ) -
+      Math.hypot(
+        player.x - b.x,
+        player.y - b.y
+      )
   )[0];
 
-  if (!target) return;
+  if (!target) {
+    return;
+  }
 
-  const dx = target.x - player.x;
-  const dy = target.y - player.y;
-  const l = Math.hypot(dx, dy) || 1;
+  const dx =
+    target.x -
+    player.x;
+
+  const dy =
+    target.y -
+    player.y;
+
+  const l =
+    Math.hypot(
+      dx,
+      dy
+    ) || 1;
 
   shots.push({
     x: player.x,
-    y: player.y - 12,
-    vx: dx / l * 760,
-    vy: dy / l * 760,
+
+    y:
+      player.y -
+      12,
+
+    vx:
+      dx /
+      l *
+      760,
+
+    vy:
+      dy /
+      l *
+      760,
+
     r: 7,
+
     life: 1.3,
-    dmg: run.damage * (1 + .18 * (run.weaponLv - 1)),
+
+    dmg:
+      run.damage *
+      (
+        1 +
+        .18 *
+        (
+          run.weaponLv -
+          1
+        )
+      ),
+
     emoji:
-      run.weaponLv < 3 ? '🎤' :
-      run.weaponLv < 5 ? '🥁' :
-      '💿'
+      run.weaponLv < 3
+        ? '🎤'
+        : run.weaponLv < 5
+          ? '🥁'
+          : '💿'
   });
 
   run.crew.forEach((id, i) => {
-    const c = state.crew.find(x => x.id === id);
+    const c =
+      state.crew.find(
+        x =>
+          x.id === id
+      );
 
-    const angle = (i - (run.crew.length - 1) / 2) * .15;
-    const cs = Math.cos(angle);
-    const sn = Math.sin(angle);
+    const angle =
+      (
+        i -
+        (
+          run.crew.length -
+          1
+        ) /
+        2
+      ) *
+      .15;
+
+    const cs =
+      Math.cos(angle);
+
+    const sn =
+      Math.sin(angle);
 
     const vx =
-      (dx / l * 690) * cs -
-      (dy / l * 690) * sn;
+      (
+        dx /
+        l *
+        690
+      ) *
+      cs -
+      (
+        dy /
+        l *
+        690
+      ) *
+      sn;
 
     const vy =
-      (dx / l * 690) * sn +
-      (dy / l * 690) * cs;
+      (
+        dx /
+        l *
+        690
+      ) *
+      sn +
+      (
+        dy /
+        l *
+        690
+      ) *
+      cs;
 
     shots.push({
-      x: player.x + (i - (run.crew.length - 1) / 2) * 14,
-      y: player.y + 14,
+      x:
+        player.x +
+        (
+          i -
+          (
+            run.crew.length -
+            1
+          ) /
+          2
+        ) *
+        14,
+
+      y:
+        player.y +
+        14,
+
       vx,
       vy,
+
       r: 5,
+
       life: 1.2,
-      dmg: run.damage * (.28 + c.level * .05),
-      emoji: c.emoji
+
+      dmg:
+        run.damage *
+        (
+          .28 +
+          c.level * .05
+        ),
+
+      emoji:
+        c.emoji
     });
   });
 }
@@ -663,16 +1077,26 @@ function fire() {
 // =========================================================
 
 function updateHud() {
-  ui.weaponLv.textContent = run.weaponLv;
-  ui.beatLv.textContent = run.beats;
-  ui.runCrew.textContent = run.crew.length;
+  ui.weaponLv.textContent =
+    run.weaponLv;
+
+  ui.beatLv.textContent =
+    run.beats;
+
+  ui.runCrew.textContent =
+    run.crew.length;
 
   ui.phase.textContent =
     run.phase === 'run'
-      ? 'RUN • ' + run.beatBonus.toUpperCase()
+      ? 'RUN • ' +
+        run.beatBonus.toUpperCase()
       : 'PROGRESSION ZONE';
 
-  const progressionTotal = Math.max(1, targets.length);
+  const progressionTotal =
+    Math.max(
+      1,
+      targets.length
+    );
 
   ui.runProgress.style.width =
     Math.min(
@@ -680,9 +1104,12 @@ function updateHud() {
       (
         run.phase === 'run'
           ? run.distance / 38
-          : run.progressionDone / progressionTotal
-      ) * 100
-    ) + '%';
+          : run.progressionDone /
+            progressionTotal
+      ) *
+      100
+    ) +
+    '%';
 }
 
 // =========================================================
@@ -692,14 +1119,27 @@ function updateHud() {
 function update(dt) {
   if (pointer !== null) {
     player.x +=
-      Math.sign(pointer - player.x) *
+      Math.sign(
+        pointer -
+        player.x
+      ) *
       Math.min(
-        Math.abs(pointer - player.x),
+        Math.abs(
+          pointer -
+          player.x
+        ),
         430 * dt
       );
   }
 
-  player.x = Math.max(24, Math.min(W - 24, player.x));
+  player.x =
+    Math.max(
+      24,
+      Math.min(
+        W - 24,
+        player.x
+      )
+    );
 
   run.fireClock -= dt;
 
@@ -726,17 +1166,25 @@ function update(dt) {
     if (run.distance > 38) {
       beginProgression();
     }
+
   } else {
     for (const t of targets) {
-      t.y += 112 * dt;
+      t.y +=
+        112 *
+        dt;
     }
 
     for (const t of targets) {
-      if (t.dead) continue;
+      if (t.dead) {
+        continue;
+      }
 
       if (
         t.kind === 'gen' &&
-        GeneratorSystem.playerCollides(t, player)
+        GeneratorSystem.playerCollides(
+          t,
+          player
+        )
       ) {
         die();
         return;
@@ -744,57 +1192,108 @@ function update(dt) {
 
       if (
         t.kind === 'merch' &&
-        Math.hypot(player.x - t.x, player.y - t.y) < player.r + t.r
+        Math.hypot(
+          player.x - t.x,
+          player.y - t.y
+        ) <
+        player.r +
+        t.r
       ) {
         die();
         return;
       }
     }
 
-    if (targets.length && targets.every(t => t.dead)) {
+    if (
+      targets.length &&
+      targets.every(
+        t => t.dead
+      )
+    ) {
       finishStage();
     }
   }
 
-  // Move gates
+  // Move gates.
   for (const g of gates) {
-    g.y += 125 * dt;
+    g.y +=
+      125 *
+      dt;
   }
 
-  // Move enemies
+  // Move enemies.
   for (const e of enemies) {
-    e.y += e.speed * dt;
+    e.y +=
+      e.speed *
+      dt;
   }
 
-  // Move shots
+  // Move shots.
   for (const s of shots) {
-    s.x += s.vx * dt;
-    s.y += s.vy * dt;
+    s.x +=
+      s.vx *
+      dt;
+
+    s.y +=
+      s.vy *
+      dt;
+
     s.life -= dt;
   }
 
-  // Shot collisions
+  // Shot collisions.
   for (const s of shots) {
-    if (s.life <= 0) continue;
+    if (s.life <= 0) {
+      continue;
+    }
 
-    for (const t of [...targets, ...enemies]) {
-      if (t.dead) continue;
+    for (
+      const t
+      of [
+        ...targets,
+        ...enemies
+      ]
+    ) {
+      if (t.dead) {
+        continue;
+      }
 
       const hit =
         t.kind === 'gen'
-          ? GeneratorSystem.shotCollides(t, s)
-          : Math.hypot(s.x - t.x, s.y - t.y) < s.r + t.r;
+          ? GeneratorSystem.shotCollides(
+              t,
+              s
+            )
+          : Math.hypot(
+              s.x - t.x,
+              s.y - t.y
+            ) <
+            s.r +
+            t.r;
 
-      if (!hit) continue;
+      if (!hit) {
+        continue;
+      }
 
-      t.hp -= s.dmg * (Math.random() < run.crit ? 2 : 1);
+      t.hp -=
+        s.dmg *
+        (
+          Math.random() <
+          run.crit
+            ? 2
+            : 1
+        );
+
       s.life = 0;
 
       if (t.hp <= 0) {
         t.dead = true;
 
-        if (targets.includes(t)) {
+        if (
+          targets.includes(t)
+        ) {
           run.progressionDone++;
+
           rewardTarget(t);
         }
       }
@@ -803,13 +1302,19 @@ function update(dt) {
     }
   }
 
-  // Enemy → player collision
+  // Enemy → player collision.
   for (const e of enemies) {
     if (
       !e.dead &&
-      Math.hypot(player.x - e.x, player.y - e.y) < player.r + e.r
+      Math.hypot(
+        player.x - e.x,
+        player.y - e.y
+      ) <
+      player.r +
+      e.r
     ) {
       e.dead = true;
+
       run.hp -= 18;
 
       if (run.hp <= 0) {
@@ -819,24 +1324,53 @@ function update(dt) {
     }
   }
 
-  // Gate → player collision
+  // Gate → player collision.
   for (const g of gates) {
-    if (GateSystem.playerCollides(g, player)) {
+    if (
+      GateSystem.playerCollides(
+        g,
+        player
+      )
+    ) {
       useGate(g);
       break;
     }
 
-    if (g.y > H + 120) {
+    if (
+      g.y >
+      H +
+      120
+    ) {
       gates = [];
     }
   }
 
-  enemies = enemies.filter(e => !e.dead && e.y < H + 60);
-  shots = shots.filter(s => s.life > 0);
+  enemies =
+    enemies.filter(
+      e =>
+        !e.dead &&
+        e.y <
+        H +
+        60
+    );
 
-  targets = targets.filter(
-    t => !(t.dead && t.y > H + 50)
-  );
+  shots =
+    shots.filter(
+      s =>
+        s.life >
+        0
+    );
+
+  targets =
+    targets.filter(
+      t =>
+        !(
+          t.dead &&
+          t.y >
+          H +
+          50
+        )
+    );
 
   updateHud();
 }
@@ -846,67 +1380,157 @@ function update(dt) {
 // =========================================================
 
 function draw() {
-  ctx.clearRect(0, 0, W, H);
+  ctx.clearRect(
+    0,
+    0,
+    W,
+    H
+  );
 
-  const grd = ctx.createLinearGradient(0, 0, 0, H);
+  const grd =
+    ctx.createLinearGradient(
+      0,
+      0,
+      0,
+      H
+    );
 
-  grd.addColorStop(0, '#191440');
-  grd.addColorStop(.55, '#0a0d1b');
-  grd.addColorStop(1, '#05060b');
+  grd.addColorStop(
+    0,
+    '#191440'
+  );
+
+  grd.addColorStop(
+    .55,
+    '#0a0d1b'
+  );
+
+  grd.addColorStop(
+    1,
+    '#05060b'
+  );
 
   ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, W, H);
 
-  // Track lines
-  ctx.strokeStyle = '#35dbff22';
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  // Track lines.
+  ctx.strokeStyle =
+    '#35dbff22';
+
   ctx.lineWidth = 1;
 
-  for (let i = 0; i < 12; i++) {
+  for (
+    let i = 0;
+    i < 12;
+    i++
+  ) {
     const y =
-      (i * 90 + (performance.now() / 8) % 90) - 90;
+      (
+        i * 90 +
+        (
+          performance.now() /
+          8
+        ) %
+        90
+      ) -
+      90;
 
     ctx.beginPath();
-    ctx.moveTo(W * .18, y);
-    ctx.lineTo(W * .82, y);
+
+    ctx.moveTo(
+      W * .18,
+      y
+    );
+
+    ctx.lineTo(
+      W * .82,
+      y
+    );
+
     ctx.stroke();
   }
 
-  // Side lines
-  ctx.strokeStyle = '#ff3eb534';
+  // Side lines.
+  ctx.strokeStyle =
+    '#ff3eb534';
+
   ctx.lineWidth = 2;
 
   ctx.beginPath();
-  ctx.moveTo(W * .18, 0);
-  ctx.lineTo(W * .08, H);
+
+  ctx.moveTo(
+    W * .18,
+    0
+  );
+
+  ctx.lineTo(
+    W * .08,
+    H
+  );
+
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.moveTo(W * .82, 0);
-  ctx.lineTo(W * .92, H);
+
+  ctx.moveTo(
+    W * .82,
+    0
+  );
+
+  ctx.lineTo(
+    W * .92,
+    H
+  );
+
   ctx.stroke();
 
-  // Gates are now drawn by gate.js
+  // Gates are drawn by gate.js.
   for (const g of gates) {
-    GateSystem.draw(ctx, g, run);
+    GateSystem.draw(
+      ctx,
+      g,
+      run
+    );
   }
 
-  // Progression targets
-  ctx.textAlign = 'center';
+  // Progression targets.
+  ctx.textAlign =
+    'center';
 
   for (const t of targets) {
-    if (t.dead) continue;
-
-    // Generators are drawn by generators.js
-    if (t.kind === 'gen') {
-      GeneratorSystem.draw(ctx, t);
+    if (t.dead) {
       continue;
     }
 
-    // Merch
-    ctx.font = '28px Arial';
-    ctx.fillText(t.emoji, t.x, t.y + 8);
+    // Generators are drawn by generators.js.
+    if (t.kind === 'gen') {
+      GeneratorSystem.draw(
+        ctx,
+        t
+      );
 
-    ctx.fillStyle = '#ffffff20';
+      continue;
+    }
+
+    // Merch.
+    ctx.font =
+      '28px Arial';
+
+    ctx.fillText(
+      t.emoji,
+      t.x,
+      t.y + 8
+    );
+
+    ctx.fillStyle =
+      '#ffffff20';
+
     ctx.fillRect(
       t.x - 28,
       t.y - t.r - 10,
@@ -914,22 +1538,33 @@ function draw() {
       5
     );
 
-    ctx.fillStyle = '#63efa5';
+    ctx.fillStyle =
+      '#63efa5';
+
     ctx.fillRect(
       t.x - 28,
       t.y - t.r - 10,
-      56 * (t.hp / t.max),
+      56 *
+      (
+        t.hp /
+        t.max
+      ),
       5
     );
   }
 
-  // Enemies
+  // Enemies.
   for (const e of enemies) {
     ctx.beginPath();
 
-    ctx.fillStyle = '#191d35';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#ff3eb5';
+    ctx.fillStyle =
+      '#191d35';
+
+    ctx.shadowBlur =
+      10;
+
+    ctx.shadowColor =
+      '#ff3eb5';
 
     ctx.arc(
       e.x,
@@ -943,35 +1578,73 @@ function draw() {
 
     ctx.shadowBlur = 0;
 
-    ctx.font = '17px Arial';
-    ctx.fillText('👾', e.x, e.y + 6);
+    ctx.font =
+      '17px Arial';
+
+    ctx.fillText(
+      '👾',
+      e.x,
+      e.y + 6
+    );
   }
 
-  // Shots
+  // Shots.
   for (const s of shots) {
-    ctx.font = (s.r > 6 ? '20px' : '17px') + ' Arial';
-    ctx.fillText(s.emoji, s.x, s.y);
+    ctx.font =
+      (
+        s.r > 6
+          ? '20px'
+          : '17px'
+      ) +
+      ' Arial';
+
+    ctx.fillText(
+      s.emoji,
+      s.x,
+      s.y
+    );
   }
 
-  // Crew
+  // Crew.
   run.crew?.forEach((id, i) => {
-    const c = state.crew.find(x => x.id === id);
+    const c =
+      state.crew.find(
+        x =>
+          x.id === id
+      );
 
-    ctx.font = '18px Arial';
+    ctx.font =
+      '18px Arial';
 
     ctx.fillText(
       c.emoji,
-      player.x + (i - (run.crew.length - 1) / 2) * 28,
+
+      player.x +
+      (
+        i -
+        (
+          run.crew.length -
+          1
+        ) /
+        2
+      ) *
+      28,
+
       player.y + 39
     );
   });
 
-  // Player outer glow
+  // Player outer glow.
   ctx.beginPath();
 
-  ctx.fillStyle = '#35dbff';
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = '#35dbff';
+  ctx.fillStyle =
+    '#35dbff';
+
+  ctx.shadowBlur =
+    20;
+
+  ctx.shadowColor =
+    '#35dbff';
 
   ctx.arc(
     player.x,
@@ -985,10 +1658,11 @@ function draw() {
 
   ctx.shadowBlur = 0;
 
-  // Player center
+  // Player body.
   ctx.beginPath();
 
-  ctx.fillStyle = '#18172f';
+  ctx.fillStyle =
+    '#18172f';
 
   ctx.arc(
     player.x,
@@ -1000,12 +1674,19 @@ function draw() {
 
   ctx.fill();
 
-  ctx.font = '21px Arial';
-  ctx.fillText('🎧', player.x, player.y + 7);
+  ctx.font =
+    '21px Arial';
 
-  // Player HP
+  ctx.fillText(
+    '🎧',
+    player.x,
+    player.y + 7
+  );
+
+  // Player HP.
   if (run.hp) {
-    ctx.fillStyle = '#ffffff20';
+    ctx.fillStyle =
+      '#ffffff20';
 
     ctx.fillRect(
       player.x - 31,
@@ -1014,12 +1695,17 @@ function draw() {
       5
     );
 
-    ctx.fillStyle = '#ff5f79';
+    ctx.fillStyle =
+      '#ff5f79';
 
     ctx.fillRect(
       player.x - 31,
       player.y + 25,
-      62 * (run.hp / run.maxHp),
+      62 *
+      (
+        run.hp /
+        run.maxHp
+      ),
       5
     );
   }
@@ -1030,26 +1716,39 @@ function draw() {
 // =========================================================
 
 function loop(now) {
-  const dt = Math.min(
-    .033,
-    (now - last) / 1000 || 0
-  );
+  const dt =
+    Math.min(
+      .033,
+      (
+        now -
+        last
+      ) /
+      1000 ||
+      0
+    );
 
   last = now;
 
   if (
-    $('#gameScreen').classList.contains('active') &&
+    $('#gameScreen')
+      .classList
+      .contains('active') &&
     active &&
     !paused
   ) {
     update(dt);
   }
 
-  if ($('#gameScreen').classList.contains('active')) {
+  if (
+    $('#gameScreen')
+      .classList
+      .contains('active')
+  ) {
     draw();
   }
 
-  raf = requestAnimationFrame(loop);
+  raf =
+    requestAnimationFrame(loop);
 }
 
 // =========================================================
@@ -1060,4 +1759,5 @@ refreshMeta();
 renderMenus();
 resize();
 
-raf = requestAnimationFrame(loop);
+raf =
+  requestAnimationFrame(loop);
