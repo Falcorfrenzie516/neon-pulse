@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Pulse Alpha 1.9 - Updated</title>
+<title>Neon Pulse Alpha 1.9.1 - Updated</title>
 <style>
 :root{
   --bg:#050611;--panel:#11152a;--panel2:#191d3b;--pink:#ff3eb5;--cyan:#35dbff;
@@ -98,7 +98,7 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 <section id="menu" class="screen active">
   <div class="card">
     <div class="brand">NEON <span>PULSE</span></div>
-    <div class="version">ALPHA 1.9 • EXIT STAGE FIX</div>
+    <div class="version">ALPHA 1.9.1 • EXIT STAGE</div>
     <div class="menuStory">
       <h1>EVERY GREAT DJ<br><span>HAS TO START SOMEWHERE.</span></h1>
       <p>You have a laptop, a half-decent controller, enough camping gear to <i>probably</i> survive the weekend, and absolutely no idea what you're doing.</p>
@@ -703,7 +703,7 @@ function finishRunSuccess(){
 
   showOverlay(`<div class="card">
     <h2>🚪 YOU FOUND THE EXIT</h2>
-    <p>You made it through Backstage and successfully escaped the stage.<br><b>Very professional. Almost looked intentional.</b></p>
+    <p>You cleared Backstage, found the exit, and successfully escaped the stage.<br><b>Very professional. Almost looked intentional.</b></p>
 
     <div class="result">
       <div class="card">
@@ -888,12 +888,17 @@ function update(dt){
       }
     }
 
-    // After row 8 has entered the playfield, the EXIT STAGE door follows behind it.
+    // EXIT STAGE only appears after every generator/merch target
+    // from all 8 Backstage rows has actually been destroyed.
     if(run.backstageRow>=maxRows && !run.exitSpawned){
-      const finalRow=livingGenerators.filter(t=>t.row===maxRows-1);
-      const finalRowY=finalRow.length ? Math.min(...finalRow.map(t=>t.y)) : H;
+      const remainingBackstageTargets=targets.filter(t=>
+        !t.dead &&
+        t.kind!=='exit' &&
+        t.row>=0 &&
+        t.row<maxRows
+      );
 
-      if(finalRowY>175 || finalRow.length===0){
+      if(remainingBackstageTargets.length===0){
         spawnExitStage();
       }
     }
