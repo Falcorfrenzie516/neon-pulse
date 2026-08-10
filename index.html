@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Pulse Alpha 1.9.4 - Updated</title>
+<title>Neon Pulse Alpha 1.9.5 - UI & Stage Assets</title>
 <style>
 :root{
   --bg:#050611;--panel:#11152a;--panel2:#191d3b;--pink:#ff3eb5;--cyan:#35dbff;
@@ -99,14 +99,62 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 .storyCard *{text-align:center}
 .successModal h2,.successModal>p{text-align:center}
 
+
+/* Alpha 1.9.5 main-page polish */
+#menu>.card{text-align:center}
+#menu>.card>h3{
+  text-align:center;
+  font-size:24px;
+  margin:0 0 16px;
+  padding:12px 14px;
+  border-radius:13px;
+  background:#151b39;
+  border:1px solid #ffffff24;
+  box-shadow:inset 0 0 18px #ffffff08;
+}
+#menu>.card>h3 span{
+  display:inline-block;
+  font-size:12px!important;
+  margin-left:4px;
+}
+#menu>.grid>.card{
+  text-align:center;
+  padding:17px 14px;
+}
+#menu>.grid>.card>b{
+  display:block;
+  font-size:18px;
+  margin-bottom:4px;
+}
+#menu .secondary{
+  min-height:78px;
+  text-align:center;
+}
+#menu .secondary small{
+  display:block;
+  margin-top:5px;
+}
+#menu .card>p.stat{
+  max-width:760px;
+  margin:0 auto 14px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:#151b39;
+  border:1px solid #ffffff1f;
+  text-align:center;
+  line-height:1.4;
+}
+
 </style>
 </head>
 <body>
 
 <section id="menu" class="screen active">
   <div class="card">
-    <div class="brand">NEON <span>PULSE</span></div>
-    <div class="version">ALPHA 1.9.4 • GENERATOR LEVELS</div>
+    <div class="gameLogoWrap">
+      <img id="gameTitleLogo" src="assets/neon-pulse-title.png" alt="Neon Pulse">
+    </div>
+    <div class="version gameVersion">ALPHA 1.9.5 • BASEMENT RAVE</div>
     <div class="menuStory">
       <h1>EVERY GREAT DJ<br><span>HAS TO START SOMEWHERE.</span></h1>
       <p>You have a laptop, a half-decent controller, enough camping gear to <i>probably</i> survive the weekend, and absolutely no idea what you're doing.</p>
@@ -202,6 +250,10 @@ const glowPileArt=new Image();
 glowPileArt.src="assets/glow-pile.png";
 const stubPileArt=new Image();
 stubPileArt.src="assets/stub-pile.png";
+const soundCheckArt=new Image();
+soundCheckArt.src="assets/sound-check.png";
+const speakerArt=new Image();
+speakerArt.src="assets/speakers.png";
 
 
 let state=JSON.parse(localStorage.getItem('neonPulseAlpha09')||'null')||{
@@ -1115,49 +1167,42 @@ function draw(){
   for(const g of gates){
     const cost=nextRewardCost(g);
     const pct=Math.min(1,g.damageBank/cost);
-
-    ctx.shadowBlur=16;
-    ctx.shadowColor='#35dbff';
-    ctx.strokeStyle='#35dbff';
-    ctx.lineWidth=4;
-    ctx.strokeRect(g.x-g.w/2,g.y-g.h/2,g.w,g.h);
-    ctx.shadowBlur=0;
-
     ctx.textAlign='center';
 
-    if((g.type==='glow' && glowPileArt.complete) || (g.type==='stubs' && stubPileArt.complete)){
-      const art=g.type==='glow'?glowPileArt:stubPileArt;
-      const artW=58, artH=42;
-      ctx.drawImage(art,g.x-artW/2,g.y-g.h/2+5,artW,artH);
+    const stageArt =
+      g.type==='weapon' ? soundCheckArt :
+      g.type==='beats' ? speakerArt :
+      g.type==='glow' ? glowPileArt :
+      g.type==='stubs' ? stubPileArt :
+      null;
 
-      ctx.fillStyle='#fff';
-      ctx.font='900 12px Arial';
-      ctx.fillText(g.name,g.x,g.y+3);
+    if(stageArt && stageArt.complete && stageArt.naturalWidth){
+      const maxW=g.type==='weapon'?118:(g.type==='beats'?82:62);
+      const maxH=g.type==='weapon'?78:(g.type==='beats'?82:46);
+      const scale=Math.min(maxW/stageArt.naturalWidth,maxH/stageArt.naturalHeight);
+      const artW=stageArt.naturalWidth*scale;
+      const artH=stageArt.naturalHeight*scale;
 
-      ctx.font='1000 20px Arial';
+      ctx.drawImage(stageArt,g.x-artW/2,g.y-artH/2-7,artW,artH);
+
+      ctx.font='1000 21px Arial';
       ctx.fillStyle=g.claimed?'#63efa5':'#dfe6ff';
-      ctx.fillText(`+${g.claimed}`,g.x,g.y+23);
-
-      ctx.fillStyle='#ffffff20';
-      ctx.fillRect(g.x-52,g.y+34,104,6);
-      ctx.fillStyle='#ffd65a';
-      ctx.fillRect(g.x-52,g.y+34,104*pct,6);
+      ctx.fillText(`+${g.claimed}`,g.x,g.y+g.h/2-5);
     }else{
-      ctx.fillStyle='#fff';
-      ctx.font='900 16px Arial';
-      ctx.fillText(`${g.emoji} ${g.name}`,g.x,g.y-18);
-
-      ctx.font='1000 23px Arial';
+      // Crew keeps a simple icon until dedicated art is added.
+      ctx.font='42px Arial';
+      ctx.fillText(g.emoji,g.x,g.y-3);
+      ctx.font='1000 21px Arial';
       ctx.fillStyle=g.claimed?'#63efa5':'#dfe6ff';
-      ctx.fillText(`+${g.claimed}`,g.x,g.y+9);
-
-      ctx.fillStyle='#ffffff20';
-      ctx.fillRect(g.x-52,g.y+24,104,6);
-      ctx.fillStyle='#ffd65a';
-      ctx.fillRect(g.x-52,g.y+24,104*pct,6);
+      ctx.fillText(`+${g.claimed}`,g.x,g.y+31);
     }
-  }
 
+    // Progress only — no title and no blue stage outline.
+    ctx.fillStyle='#ffffff20';
+    ctx.fillRect(g.x-52,g.y+g.h/2+5,104,6);
+    ctx.fillStyle='#ffd65a';
+    ctx.fillRect(g.x-52,g.y+g.h/2+5,104*pct,6);
+  }
   for(const t of targets){
     if(t.dead)continue;
 
