@@ -2,6 +2,10 @@ if (typeof GeneratorSystem === 'undefined') {
   throw new Error('GeneratorSystem is missing. Load generators/generators.js before game.js.');
 }
 
+if (typeof GateSystem === 'undefined') {
+  throw new Error('GateSystem is missing. Load generators/gate.js before game.js.');
+}
+
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
@@ -324,29 +328,21 @@ function showOverlay(html) {
   paused = true;
 }
 
+// =========================================================
+// GATES
+// =========================================================
+
 function spawnTrackChoice() {
   if (gates.length) return;
-
-  const opts = [
-    { type: 'weapon', name: 'SOUND CHECK', sub: '+1 Weapon Level', emoji: '🎛️' },
-    { type: 'beats', name: 'SPEAKERS', sub: '+1 Beat', emoji: '🔊' },
-    { type: 'stubs', name: 'STUB PILE', sub: '+ Ticket Stubs', emoji: '🎟' },
-    { type: 'glow', name: 'GLOW PILE', sub: '+ Glow Sticks', emoji: '✨' },
-    { type: 'crew', name: 'CREW', sub: '+1 Crew', emoji: '👥' }
-  ]
-    .sort(() => Math.random() - .5)
-    .slice(0, 2);
-
-  gates = [
-    { x: W * .28, y: -95, w: 130, h: 82, ...opts[0] },
-    { x: W * .72, y: -95, w: 130, h: 82, ...opts[1] }
-  ];
+  gates = GateSystem.createPair(W);
 }
 
 function useGate(g) {
   gates = [];
 
-  if (g.type === 'weapon') run.weaponLv++;
+  if (g.type === 'weapon') {
+    run.weaponLv++;
+  }
 
   if (g.type === 'beats') {
     run.beats++;
@@ -379,6 +375,10 @@ function updateBeatBonus() {
     'Iconic';
 }
 
+// =========================================================
+// CREW
+// =========================================================
+
 function chooseCrew() {
   const buttons = state.crew.map(c => `
     <button class="choice" onclick="pickCrew('${c.id}')">
@@ -408,6 +408,10 @@ window.pickCrew = id => {
   updateHud();
 };
 
+// =========================================================
+// GENERATORS / PROGRESSION
+// =========================================================
+
 function beginProgression() {
   run.phase = 'progression';
   run.progressionDone = 0;
@@ -417,6 +421,7 @@ function beginProgression() {
   enemies = [];
   targets = [];
 
+  // Merch boxes
   for (let i = 0; i < 3; i++) {
     targets.push({
       kind: 'merch',
@@ -430,6 +435,7 @@ function beginProgression() {
     });
   }
 
+  // Eight generator rows.
   const lanePositions = [
     W * .26,
     W * .42,
@@ -437,6 +443,7 @@ function beginProgression() {
     W * .74
   ];
 
+  // Leaves a full empty row between generator rows.
   const rowGap = 300;
 
   for (let row = 0; row < 8; row++) {
@@ -501,6 +508,7 @@ function finishStage() {
     <div class="card">
       <div class="tiny muted">STAGE CLEARED</div>
       <h2>🎪 ${festival}</h2>
+
       <p>You pushed deeper into the festival circuit.</p>
 
       <div class="card" style="margin-bottom:10px">
@@ -527,6 +535,10 @@ window.nextStage = () => {
 
   updateHud();
 };
+
+// =========================================================
+// DEATH
+// =========================================================
 
 function die() {
   active = false;
@@ -561,10 +573,16 @@ function die() {
 
 window.backToMenu = () => {
   ui.overlay.classList.add('hidden');
+
   show('menu');
+
   renderMenus();
   refreshMeta();
 };
+
+// =========================================================
+// ENEMIES
+// =========================================================
 
 function spawnEnemy() {
   const hp = 20 + run.stage * 8;
@@ -579,15 +597,18 @@ function spawnEnemy() {
   });
 }
 
+// =========================================================
+// FIRING
+// =========================================================
+
 function fire() {
   const target = [
     ...targets.filter(t => !t.dead),
     ...enemies.filter(e => !e.dead)
-  ]
-    .sort((a, b) =>
-      Math.hypot(player.x - a.x, player.y - a.y) -
-      Math.hypot(player.x - b.x, player.y - b.y)
-    )[0];
+  ].sort((a, b) =>
+    Math.hypot(player.x - a.x, player.y - a.y) -
+    Math.hypot(player.x - b.x, player.y - b.y)
+  )[0];
 
   if (!target) return;
 
@@ -637,6 +658,10 @@ function fire() {
   });
 }
 
+// =========================================================
+// HUD
+// =========================================================
+
 function updateHud() {
   ui.weaponLv.textContent = run.weaponLv;
   ui.beatLv.textContent = run.beats;
@@ -660,11 +685,18 @@ function updateHud() {
     ) + '%';
 }
 
+// =========================================================
+// UPDATE
+// =========================================================
+
 function update(dt) {
   if (pointer !== null) {
     player.x +=
       Math.sign(pointer - player.x) *
-      Math.min(Math.abs(pointer - player.x), 430 * dt);
+      Math.min(
+        Math.abs(pointer - player.x),
+        430 * dt
+      );
   }
 
   player.x = Math.max(24, Math.min(W - 24, player.x));
@@ -712,8 +744,7 @@ function update(dt) {
 
       if (
         t.kind === 'merch' &&
-        Math.hypot(player.x - t.x, player.y - t.y) <
-        player.r + t.r
+        Math.hypot(player.x - t.x, player.y - t.y) < player.r + t.r
       ) {
         die();
         return;
@@ -725,20 +756,24 @@ function update(dt) {
     }
   }
 
+  // Move gates
   for (const g of gates) {
     g.y += 125 * dt;
   }
 
+  // Move enemies
   for (const e of enemies) {
     e.y += e.speed * dt;
   }
 
+  // Move shots
   for (const s of shots) {
     s.x += s.vx * dt;
     s.y += s.vy * dt;
     s.life -= dt;
   }
 
+  // Shot collisions
   for (const s of shots) {
     if (s.life <= 0) continue;
 
@@ -768,11 +803,11 @@ function update(dt) {
     }
   }
 
+  // Enemy → player collision
   for (const e of enemies) {
     if (
       !e.dead &&
-      Math.hypot(player.x - e.x, player.y - e.y) <
-      player.r + e.r
+      Math.hypot(player.x - e.x, player.y - e.y) < player.r + e.r
     ) {
       e.dead = true;
       run.hp -= 18;
@@ -784,12 +819,9 @@ function update(dt) {
     }
   }
 
+  // Gate → player collision
   for (const g of gates) {
-    if (
-      g.y + g.h / 2 > player.y - player.r &&
-      g.y - g.h / 2 < player.y + player.r &&
-      Math.abs(player.x - g.x) < g.w / 2
-    ) {
+    if (GateSystem.playerCollides(g, player)) {
       useGate(g);
       break;
     }
@@ -799,13 +831,8 @@ function update(dt) {
     }
   }
 
-  enemies = enemies.filter(
-    e => !e.dead && e.y < H + 60
-  );
-
-  shots = shots.filter(
-    s => s.life > 0
-  );
+  enemies = enemies.filter(e => !e.dead && e.y < H + 60);
+  shots = shots.filter(s => s.life > 0);
 
   targets = targets.filter(
     t => !(t.dead && t.y > H + 50)
@@ -813,6 +840,10 @@ function update(dt) {
 
   updateHud();
 }
+
+// =========================================================
+// DRAW
+// =========================================================
 
 function draw() {
   ctx.clearRect(0, 0, W, H);
@@ -826,6 +857,7 @@ function draw() {
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, W, H);
 
+  // Track lines
   ctx.strokeStyle = '#35dbff22';
   ctx.lineWidth = 1;
 
@@ -839,6 +871,7 @@ function draw() {
     ctx.stroke();
   }
 
+  // Side lines
   ctx.strokeStyle = '#ff3eb534';
   ctx.lineWidth = 2;
 
@@ -852,50 +885,24 @@ function draw() {
   ctx.lineTo(W * .92, H);
   ctx.stroke();
 
+  // Gates are now drawn by gate.js
   for (const g of gates) {
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = '#35dbff';
-    ctx.strokeStyle = '#35dbff';
-    ctx.lineWidth = 4;
-
-    ctx.strokeRect(
-      g.x - g.w / 2,
-      g.y - g.h / 2,
-      g.w,
-      g.h
-    );
-
-    ctx.shadowBlur = 0;
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'white';
-    ctx.font = '900 16px Arial';
-
-    ctx.fillText(
-      g.emoji + ' ' + g.name,
-      g.x,
-      g.y - 4
-    );
-
-    ctx.font = '800 11px Arial';
-    ctx.fillStyle = '#d7def7';
-
-    ctx.fillText(
-      g.sub,
-      g.x,
-      g.y + 17
-    );
+    GateSystem.draw(ctx, g, run);
   }
 
+  // Progression targets
   ctx.textAlign = 'center';
 
   for (const t of targets) {
     if (t.dead) continue;
 
+    // Generators are drawn by generators.js
     if (t.kind === 'gen') {
       GeneratorSystem.draw(ctx, t);
       continue;
     }
 
+    // Merch
     ctx.font = '28px Arial';
     ctx.fillText(t.emoji, t.x, t.y + 8);
 
@@ -916,8 +923,10 @@ function draw() {
     );
   }
 
+  // Enemies
   for (const e of enemies) {
     ctx.beginPath();
+
     ctx.fillStyle = '#191d35';
     ctx.shadowBlur = 10;
     ctx.shadowColor = '#ff3eb5';
@@ -931,17 +940,20 @@ function draw() {
     );
 
     ctx.fill();
+
     ctx.shadowBlur = 0;
 
     ctx.font = '17px Arial';
     ctx.fillText('👾', e.x, e.y + 6);
   }
 
+  // Shots
   for (const s of shots) {
     ctx.font = (s.r > 6 ? '20px' : '17px') + ' Arial';
     ctx.fillText(s.emoji, s.x, s.y);
   }
 
+  // Crew
   run.crew?.forEach((id, i) => {
     const c = state.crew.find(x => x.id === id);
 
@@ -949,13 +961,14 @@ function draw() {
 
     ctx.fillText(
       c.emoji,
-      player.x +
-      (i - (run.crew.length - 1) / 2) * 28,
+      player.x + (i - (run.crew.length - 1) / 2) * 28,
       player.y + 39
     );
   });
 
+  // Player outer glow
   ctx.beginPath();
+
   ctx.fillStyle = '#35dbff';
   ctx.shadowBlur = 20;
   ctx.shadowColor = '#35dbff';
@@ -969,9 +982,12 @@ function draw() {
   );
 
   ctx.fill();
+
   ctx.shadowBlur = 0;
 
+  // Player center
   ctx.beginPath();
+
   ctx.fillStyle = '#18172f';
 
   ctx.arc(
@@ -985,13 +1001,9 @@ function draw() {
   ctx.fill();
 
   ctx.font = '21px Arial';
+  ctx.fillText('🎧', player.x, player.y + 7);
 
-  ctx.fillText(
-    '🎧',
-    player.x,
-    player.y + 7
-  );
-
+  // Player HP
   if (run.hp) {
     ctx.fillStyle = '#ffffff20';
 
@@ -1013,6 +1025,10 @@ function draw() {
   }
 }
 
+// =========================================================
+// GAME LOOP
+// =========================================================
+
 function loop(now) {
   const dt = Math.min(
     .033,
@@ -1029,14 +1045,16 @@ function loop(now) {
     update(dt);
   }
 
-  if (
-    $('#gameScreen').classList.contains('active')
-  ) {
+  if ($('#gameScreen').classList.contains('active')) {
     draw();
   }
 
   raf = requestAnimationFrame(loop);
 }
+
+// =========================================================
+// INITIALIZE
+// =========================================================
 
 refreshMeta();
 renderMenus();
