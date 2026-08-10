@@ -53,55 +53,29 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 }
 
 
-.ui-banner{
-  width:100%;
-  box-sizing:border-box;
-  text-align:center;
-  border:1px solid #53618f;
-  border-radius:14px;
-  padding:12px 14px;
-  margin:0 0 10px;
-  font-weight:900;
-  letter-spacing:.35px;
-  background:#1b2449;
+.uiBanner{
+  width:100%;border-radius:14px;padding:13px 14px;text-align:center;
+  background:#1a2143;border:1px solid #ffffff2b;font-weight:1000;
+  letter-spacing:.5px;box-shadow:inset 0 0 18px #ffffff08;
 }
-.ui-banner.primary-title{
-  font-size:22px;
-  border-color:#7a65e8;
-  box-shadow:0 0 12px rgba(159,82,255,.22);
+.uiBanner.sub{width:92%;margin:9px auto 0;background:#151b39;font-size:15px}
+.storyPanel{
+  width:94%;margin:12px auto;padding:15px 16px;border-radius:14px;
+  background:#151b39;border:1px solid #ffffff24;color:var(--muted);
+  line-height:1.25;box-shadow:inset 0 0 20px #35dbff08;
 }
-.ui-banner.secondary-title{
-  font-size:17px;
-  background:#151d3b;
-  border-color:#46527c;
-}
-.neon-money{
-  font-weight:900;
-  line-height:1.55;
-  text-shadow:0 0 5px currentColor,0 0 10px currentColor;
-}
-.neon-stubs{color:#f6f8ff;}
-.neon-glow{color:#ffd36a;}
-.result .card{
-  min-width:0;
-}
-.story-copy{
-  text-align:left;
-  line-height:1.25;
-}
-.story-copy .neon-emphasis{
-  display:block;
-  margin-top:10px;
-  text-align:center;
-  font-weight:900;
-  color:#ff61d8;
-  text-shadow:0 0 6px rgba(255,97,216,.8),0 0 14px rgba(157,82,255,.55);
-}
-
-
-@media (min-width:520px){
-  .result .card:first-child{transform:translateX(-7px);}
-  .result .card:last-child{transform:translateX(7px);}
+.storyPanel b:first-child{color:#fff;text-shadow:0 0 10px #35dbff77}
+.storyPanel .pressPlay{display:block;margin-top:8px;color:#fff;text-shadow:0 0 7px var(--pink),0 0 14px var(--violet)}
+.neonCurrency{font-weight:1000;line-height:1.45;text-transform:uppercase}
+.neonCurrency .stubLine{color:#fff;text-shadow:0 0 7px #35dbff,0 0 14px #35dbff88}
+.neonCurrency .glowLine{color:#fff;text-shadow:0 0 7px #ff3eb5,0 0 14px #8b5cff}
+.result.staggered .card:first-child{transform:translateX(-7px)}
+.result.staggered .card:last-child{transform:translateX(7px)}
+.cancelCopy{width:94%;margin:12px auto;color:var(--muted);line-height:1.25}
+.cancelCopy b{color:#fff}
+@media(max-width:420px){
+  .result.staggered .card:first-child{transform:translateX(-3px)}
+  .result.staggered .card:last-child{transform:translateX(3px)}
 }
 
 </style>
@@ -111,9 +85,9 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 <section id="menu" class="screen active">
   <div class="card">
     <div class="brand">NEON <span>PULSE</span></div>
-    <div class="version">ALPHA 1.8 • RAVE UI</div>
+    <div class="version">ALPHA 1.8 • BACKSTAGE</div>
     <h1>PLAN THE BUILD.<br><span>BEAT THE WALL.</span></h1>
-    <p>Stage rewards have no cap. Each sign only shows the bonus you've earned so far. Each additional +1 costs more damage than the last, so you choose whether to grind one option or split your fire and earn both. The last gate pair fully resolves before progression begins. Merch Boxes and Generators never stop moving — if one reaches you, the run ends instantly.</p>
+    <p>Stage rewards have no cap. Each sign only shows the bonus you've earned so far. Each additional +1 costs more damage than the last, so you choose whether to grind one option or split your fire and earn both. The final Stage fully resolves before Backstage begins. Backstage is an endurance push through increasingly tough Power Generators, with rarer Merch Boxes mixed into the run. Keep moving until your build can’t break what’s ahead.</p>
     <button id="playBtn" class="primary">▶ START SET</button>
   </div>
 
@@ -400,22 +374,60 @@ function resetRunData(){
     glow:0,
     fireClock:0,
     progressionDone:0,
-    totalProgressTargets:7
+    totalProgressTargets:0,
+    backstageRow:0,
+    backstageMerch:0,
+    nextBackstageSpawn:0
   };
   gates=[];shots=[];targets=[];floaters=[];
   player.x=W/2;
 }
 
+
+const basementStories=[
+  {lead:"Every great DJ has to start somewhere.",body:"Yours starts underground. Literally.<br>A basement. A borrowed sound system. A handful of people willing to call this a rave.<br>It’s not exactly a flawless setup—but that’s what version one is for."},
+  {lead:"Nobody headlines the main stage on day one.",body:"Tonight, you’re headlining a basement. Close enough.<br>The speakers are borrowed, the lighting is questionable, and someone definitely moved a couch for this.<br>Every tour has to start somewhere."},
+  {lead:"No lasers. No pyro. No production budget.",body:"Just you, a basement, and a sound system doing its absolute best.<br>The crowd is small. The ceiling is low. The potential noise complaint is enormous.<br>This is how legends begin. Probably."},
+  {lead:"Welcome to your first gig.",body:"There’s no green room unless you count the laundry room.<br>The crowd brought their own drinks, the speakers have seen better days, and the breaker box looks nervous.<br>But hey—you’ve got decks and an audience."},
+  {lead:"Your world tour starts here.",body:"Not Ibiza. Not Tomorrowland. A basement.<br>There are twelve people, three folding chairs, and absolutely no one checking tickets.<br>It may not look like much yet. That’s the point."},
+  {lead:"Every career needs a version one.",body:"This one has exposed pipes and suspicious acoustics.<br>Your equipment is borrowed, your audience is mostly friends, and your entire production budget went toward snacks.<br>Ship it anyway."}
+];
+
+const pauseScenarios=[
+  {title:"Bathroom Break?",body:"Are you seriously taking a bathroom break <b>during this set?!</b><br>Fine. We’ll hold your spot. Probably."},
+  {title:"Who Pulled That Cord?",body:"Okay, who pulled the cord?!<br>Nobody move. Nobody touch anything. And <b>definitely</b> don’t pretend you didn’t do it."},
+  {title:"Rehydrating?",body:"Oh, <i>now</i> you remember water exists?<br>Fine. Hydrate. We’ve seen what happens when you don’t."},
+  {title:"Technical Difficulties",body:"The music stopped.<br>Everyone look busy while we pretend this was a completely intentional technical decision."},
+  {title:"You Good?",body:"You just stopped in the middle of the set.<br>Everything okay? Need a minute? Existential crisis?<br><b>The crowd would like an ETA.</b>"}
+];
+
+const resumeLabels=[
+  "DROP IT","BACK TO THE DECKS","CONTINUE THE SET","REJOIN THE RAVE","CUE IT UP",
+  "RECONNECT AUX","RESTORE THE VIBES","> EXECUTE: DROP","UNMUTE THE NIGHT","REBOOT THE RAVE",
+  "RESUME THE FREQUENCY","RECONNECT TO THE BEAT","SYNC THE DECKS","RELOAD THE VIBES","BACK TO THE BEAT",
+  "RESTART THE BASS","DEPLOY THE DROP","RETURN TO BPM","PATCH THE SILENCE","> VIBES: ONLINE"
+];
+
+const exitLabels=[
+  "GET SOME REST","BACKSTAGE","BACK TO THE GREEN ROOM","LEAVE THE DECKS","CALL IT A NIGHT",
+  "END THE AFTERS","PACK UP THE GEAR","POWER DOWN","CLOCK OUT, DJ","EXIT THE BOOTH",
+  "LEAVE THE RAVE","SAVE YOUR EARS","TOUR BUS TIME","FIND THE TOUR BUS","GO TOUCH GRASS",
+  "HYDRATE & DISAPPEAR","LOG OFF THE DECKS","> RETURN: BACKSTAGE","> DJ.STATUS = OFFLINE","GO BE A PERSON"
+];
+
+function randomFrom(list){return list[Math.floor(Math.random()*list.length)]}
+
 function startRun(){
   resetRunData();
   active=true;paused=true;updateHud();
+  const story=randomFrom(basementStories);
   showOverlay(`<div class="card">
-    <h2>🪩 Basement Rave</h2>
-    <p><b>Every great DJ has to start somewhere.</b><br>
-    Yours starts underground. Literally.<br>
-    A basement. A borrowed sound system. A handful of people willing to call this a rave.<br>
-    It’s not exactly a flawless setup—but that’s what version one is for.<br>
-    <b>Time to press play.</b></p>
+    <div class="uiBanner">🪩 BASEMENT RAVE</div>
+    <div class="storyPanel">
+      <b>${story.lead}</b><br>
+      ${story.body}
+      <b class="pressPlay">Time to press play.</b>
+    </div>
     <button class="primary" onclick="resumeRun()">CUE THE LIGHTS</button>
   </div>`);
   last=performance.now();
@@ -522,30 +534,53 @@ function resolvePassedPaths(){
 function beginProgression(){
   run.phase='progression';
   run.progressionDone=0;
+  run.backstageRow=0;
+  run.backstageMerch=0;
+  run.totalProgressTargets=0;
   shots=[];
-
-  // Continuous queue. Deliberately tough enough that a weak build should eventually fail.
-  const difficulty=1 + run.beats*.035;
-  const seq=[
-    ['merch','📦','MERCH BOX',55],
-    ['merch','📦','MERCH BOX',75],
-    ['merch','📦','MERCH BOX',98],
-    ['gen','⚡','GENERATOR',135],
-    ['gen','⚡','GENERATOR',195],
-    ['gen','⚡','GENERATOR',280],
-    ['gen','⚡','GENERATOR',390]
-  ];
-
-  targets=seq.map((a,i)=>({
-    kind:a[0],emoji:a[1],label:a[2],
-    hp:Math.round(a[3]*difficulty),
-    max:Math.round(a[3]*difficulty),
-    r:a[0]==='gen'?35:27,
-    x:W/2,
-    y:-105-i*132,  // closer spacing
-    dead:false
-  }));
+  targets=[];
+  spawnBackstageRow(true);
   updateHud();
+}
+
+function backstageGeneratorHP(row){
+  const buildScale=1 + run.beats*.025;
+  return Math.round((105 + row*18 + Math.pow(row,1.32)*5.5) * buildScale);
+}
+
+function shouldSpawnMerch(){
+  // Roughly 5–10 merch opportunities across a typical deep Backstage push.
+  // Starts uncommon, with a small pity boost if several rows pass without one.
+  const sinceLast=run.backstageRow-(run.lastMerchRow||0);
+  const chance=Math.min(.24,.10 + Math.max(0,sinceLast-5)*.018);
+  return run.backstageRow>2 && Math.random()<chance;
+}
+
+function spawnBackstageRow(first=false){
+  const row=run.backstageRow++;
+  const merch=shouldSpawnMerch();
+
+  if(merch){
+    run.backstageMerch++;
+    run.lastMerchRow=row;
+  }
+
+  const hp=merch
+    ? Math.round(backstageGeneratorHP(row)*.58)
+    : backstageGeneratorHP(row);
+
+  targets.push({
+    kind:merch?'merch':'gen',
+    emoji:merch?'📦':'⚡',
+    label:merch?'MERCH BOX':'POWER GENERATOR',
+    hp,max:hp,
+    r:merch?27:35,
+    x:W/2,
+    y:first?-80:-105,
+    row,
+    dead:false
+  });
+  run.totalProgressTargets++;
 }
 
 function rewardTarget(t){
@@ -589,19 +624,17 @@ function finishRunSuccess(){
   saveState();
 
   showOverlay(`<div class="card">
-    <h2>🎆 STAGE CLEARED</h2>
+    <h2>🎆 BACKSTAGE CLEARED</h2>
     <p>You destroyed the full progression line before impact.</p>
 
     <div class="result">
       <div class="card">
         <b>YOU EARNED:</b>
-        <div class="neon-money neon-stubs">🎟 ${earnedStubs} STUBS</div>
-        <div class="neon-money neon-glow">✨ ${earnedGlow} GLOW STICKS</div>
+        <div class="tiny" style="margin-top:6px">🎟 ${earnedStubs} Stubs & ✨ ${earnedGlow} Glow Sticks!</div>
       </div>
       <div class="card">
         <b>TOUR FUNDS:</b>
-        <div class="neon-money neon-stubs">🎟 ${state.stubs} STUBS</div>
-        <div class="neon-money neon-glow">✨ ${state.glow} GLOW STICKS</div>
+        <div class="tiny" style="margin-top:6px">🎟 ${state.stubs} Stubs & ✨ ${state.glow} Glow Sticks</div>
       </div>
     </div>
 
@@ -610,11 +643,6 @@ function finishRunSuccess(){
     <button class="secondary" onclick="returnToMain()">GET SOME REST</button>
   </div>`);
 }
-
-const funnyPauses=[{"title": "Bathroom Break?", "body": "Are you seriously taking a bathroom break <b>during this set?!</b><br>Fine. We’ll hold your spot. Probably."}, {"title": "Who Pulled That Cord?", "body": "Okay, who pulled the cord?!<br>Nobody move. Nobody touch anything. And <b>definitely</b> don’t pretend you didn’t do it."}, {"title": "Rehydrating?", "body": "Oh, <i>now</i> you remember water exists?<br>Fine. Hydrate. We’ve seen what happens when you don’t."}, {"title": "Technical Difficulties", "body": "The music stopped.<br>Everyone look busy while we pretend this was a completely intentional technical decision."}, {"title": "You Good?", "body": "You just stopped in the middle of the set.<br>Everything okay? Need a minute? Existential crisis?<br><b>The crowd would like an ETA.</b>"}];
-const resumeLabels=["DROP IT", "BACK TO THE DECKS", "CONTINUE THE SET", "REJOIN THE RAVE", "CUE IT UP", "RECONNECT AUX", "RESTORE THE VIBES", "> EXECUTE: DROP", "UNMUTE THE NIGHT", "REBOOT THE RAVE", "RESUME THE FREQUENCY", "RECONNECT TO THE BEAT", "SYNC THE DECKS", "RELOAD THE VIBES", "BACK TO THE BEAT", "RESTART THE BASS", "DEPLOY THE DROP", "RETURN TO BPM", "PATCH THE SILENCE", "> VIBES: ONLINE"];
-const restLabels=["GET SOME REST", "BACKSTAGE", "BACK TO THE GREEN ROOM", "LEAVE THE DECKS", "CALL IT A NIGHT", "END THE AFTERS", "PACK UP THE GEAR", "POWER DOWN", "CLOCK OUT, DJ", "EXIT THE BOOTH", "LEAVE THE RAVE", "SAVE YOUR EARS", "TOUR BUS TIME", "FIND THE TOUR BUS", "GO TOUCH GRASS", "HYDRATE & DISAPPEAR", "LOG OFF THE DECKS", "> RETURN: BACKSTAGE", "> DJ.STATUS = OFFLINE", "GO BE A PERSON"];
-function randomFrom(list){return list[Math.floor(Math.random()*list.length)];}
 
 const funnyDeaths=[{"title": "Hydration Error", "body": "You forgot to drink water. Again.<br>Somewhere between “one more song” and “I’m totally fine,” your body submitted a formal resignation.", "punch": "Tour cancelled. Hydrate next build."}, {"title": "Glow Stick Incident", "body": "You stared into the spinning glow sticks for a little too long.<br>They were pretty. They were mesmerizing. They were apparently stronger than your sense of direction.", "punch": "You have no idea where you are. Neither does the tour bus."}, {"title": "Unplanned Stage Exit", "body": "You danced a little too hard and accidentally launched yourself off the stage.<br>The crowd thought it was part of the show.", "punch": "It was not part of the show."}, {"title": "The Drop Dropped You", "body": "You spent all night waiting for the perfect drop.<br>It finally came. So did your last remaining ounce of energy.", "punch": "The beat survived. You did not."}, {"title": "One More Song", "body": "You said, “One more song.”<br>Then you said it six more times.<br>The venue turned the lights on. The staff went home. Someone is vacuuming around you.", "punch": "Take the hint. The tour is over."}];
 
@@ -631,30 +659,34 @@ function failRun(target){
   state.glow=previousGlow+earnedGlow;
   saveState();
 
-  const death=funnyDeaths[Math.floor(Math.random()*funnyDeaths.length)];
-  const restLabel=randomFrom(restLabels);
+  const death=randomFrom(funnyDeaths);
+  const exitText=randomFrom(exitLabels);
 
   showOverlay(`<div class="card">
-    <div class="ui-banner primary-title">💀 TOUR CANCELLED</div>
-    <div class="ui-banner secondary-title">${death.title}</div>
-    <p>${death.body}<br><b>${death.punch}</b></p>
+    <div class="uiBanner">💀 TOUR CANCELLED</div>
+    <div class="uiBanner sub">${death.title}</div>
+    <div class="cancelCopy">${death.body}<br><b>${death.punch}</b></div>
 
-    <div class="result">
+    <div class="result staggered">
       <div class="card">
         <b>YOU EARNED:</b>
-        <div class="neon-money neon-stubs">🎟 ${earnedStubs} STUBS</div>
-        <div class="neon-money neon-glow">✨ ${earnedGlow} GLOW STICKS</div>
+        <div class="neonCurrency" style="margin-top:7px">
+          <div class="stubLine">🎟 ${earnedStubs} STUBS</div>
+          <div class="glowLine">✨ ${earnedGlow} GLOW STICKS</div>
+        </div>
       </div>
       <div class="card">
         <b>TOUR FUNDS:</b>
-        <div class="neon-money neon-stubs">🎟 ${state.stubs} STUBS</div>
-        <div class="neon-money neon-glow">✨ ${state.glow} GLOW STICKS</div>
+        <div class="neonCurrency" style="margin-top:7px">
+          <div class="stubLine">🎟 ${state.stubs} STUBS</div>
+          <div class="glowLine">✨ ${state.glow} GLOW STICKS</div>
+        </div>
       </div>
     </div>
 
     <button class="primary" onclick="restartRun()">PLAY IT BACK</button>
     <div style="height:8px"></div>
-    <button class="secondary" onclick="returnToMain()">${restLabel}</button>
+    <button class="secondary" onclick="returnToMain()">${exitText}</button>
   </div>`);
 }
 
@@ -677,19 +709,18 @@ window.returnToMain=()=>{
 
 
 function pauseGame(){
-  if(!active||paused)return;
+  if(!active || paused)return;
   paused=true;
-  const pause=randomFrom(funnyPauses);
-  const resumeLabel=randomFrom(resumeLabels);
-  const restLabel=randomFrom(restLabels);
-
+  const scenario=randomFrom(pauseScenarios);
+  const resumeText=randomFrom(resumeLabels);
+  const exitText=randomFrom(exitLabels);
   showOverlay(`<div class="card">
-    <div class="ui-banner primary-title">Ⅱ MUSIC PAUSED</div>
-    <div class="ui-banner secondary-title">${pause.title}</div>
-    <p>${pause.body}</p>
-    <button class="primary" onclick="resumeRun()">${resumeLabel}</button>
+    <div class="uiBanner">⏸ MUSIC PAUSED</div>
+    <div class="uiBanner sub">${scenario.title}</div>
+    <div class="cancelCopy">${scenario.body}</div>
+    <button class="primary" onclick="resumeFromPause()">${resumeText}</button>
     <div style="height:8px"></div>
-    <button class="secondary" onclick="returnToMain()">${restLabel}</button>
+    <button class="secondary" onclick="returnToMain()">${exitText}</button>
   </div>`);
 }
 window.resumeFromPause=()=>{
@@ -703,12 +734,15 @@ function updateHud(){
   $('#beatLv').textContent=run.beats;
   $('#crewCount').textContent=run.crew;
 
-  $('#phaseLabel').textContent=run.phase==='run' ? `RUN • ${run.pathsResolved}/${run.totalPaths} STAGES` : `PROGRESSION • ${run.progressionDone}/${run.totalProgressTargets}`;
-
-  const pct=run.phase==='run' ? run.pathsResolved/run.totalPaths
-    : run.progressionDone/run.totalProgressTargets;
-
-  $('#runProgress').style.width=(Math.min(1,pct)*100)+'%';
+  if(run.phase==='run'){
+    $('#phaseLabel').textContent=`RUN • ${run.pathsResolved}/${run.totalPaths} STAGES`;
+    $('#runProgress').style.width=(Math.min(1,run.pathsResolved/run.totalPaths)*100)+'%';
+  }else{
+    $('#phaseLabel').textContent=`BACKSTAGE • ROW ${Math.max(1,run.backstageRow)} • 📦 ${run.backstageMerch}`;
+    // Backstage is intentionally open-ended; pulse the bar instead of pretending it has an endpoint.
+    const pulse=35 + ((run.progressionDone%10)/10)*60;
+    $('#runProgress').style.width=pulse+'%';
+  }
 }
 
 function update(dt){
@@ -743,27 +777,28 @@ function update(dt){
       beginProgression();
     }
   }else{
-    // KEY FIX: no target ever stops. All targets continuously advance.
-    const speed=195 + run.progressionDone*6;
+    // BACKSTAGE: endless forward push. Nothing stops; difficulty comes from deeper rows.
+    const speed=Math.min(245,185 + run.progressionDone*2.2);
 
     for(const t of targets){
       if(!t.dead)t.y+=speed*dt;
     }
 
-    // ANY surviving target hitting the player line ends the run immediately.
-    const impact=targets
-      .filter(t=>!t.dead)
-      .find(t=>t.y+t.r>=player.y-player.r);
+    // Keep the next obstacle coming as the current one moves downstage.
+    const living=targets.filter(t=>!t.dead);
+    const furthestUp=living.length ? Math.min(...living.map(t=>t.y)) : H;
+    if(living.length<3 && furthestUp>105){
+      spawnBackstageRow(false);
+    }
 
+    const impact=living.find(t=>t.y+t.r>=player.y-player.r);
     if(impact){
       failRun(impact);
       return;
     }
 
-    if(targets.every(t=>t.dead)){
-      finishRunSuccess();
-      return;
-    }
+    // Clean dead targets well behind the action; Backstage itself has no automatic finish.
+    targets=targets.filter(t=>!t.dead || t.y<player.y+100);
   }
 
   for(const s of shots){
@@ -808,6 +843,7 @@ function update(dt){
         if(t.hp<=0){
           t.dead=true;
           run.progressionDone++;
+          floaters.push({x:t.x,y:t.y-42,text:t.kind==='merch'?'MERCH!':'CLEAR!',life:.45});
           rewardTarget(t);
           updateHud();
         }
