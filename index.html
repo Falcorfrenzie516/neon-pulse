@@ -98,7 +98,7 @@ h2,h3{margin-top:0}p{color:var(--muted)}
 <section id="menu" class="screen active">
   <div class="card">
     <div class="brand">NEON <span>PULSE</span></div>
-    <div class="version">ALPHA 1.9 • EXIT STAGE</div>
+    <div class="version">ALPHA 1.9 • EXIT STAGE FIX</div>
     <div class="menuStory">
       <h1>EVERY GREAT DJ<br><span>HAS TO START SOMEWHERE.</span></h1>
       <p>You have a laptop, a half-decent controller, enough camping gear to <i>probably</i> survive the weekend, and absolutely no idea what you're doing.</p>
@@ -652,7 +652,7 @@ function spawnExitStage(){
     w:Math.min(W*.48,220),
     h:96,
     x:W/2,
-    y:-125,
+    y:-70,
     row:8,
     dead:false
   });
@@ -865,25 +865,35 @@ function update(dt){
       if(!t.dead)t.y+=speed*dt;
     }
 
+    // Remove any generator that has completely passed off the bottom of the screen.
+    // This prevents old rows from blocking the spawn queue forever.
+    targets=targets.filter(t=>{
+      if(t.dead)return t.y<player.y+100;
+      if(t.kind==='exit')return true;
+      return t.y-t.r < H+80;
+    });
+
     const living=targets.filter(t=>!t.dead);
     const livingGenerators=living.filter(t=>t.kind!=='exit');
 
-    // Keep up to three generator rows visible at a time.
-    const activeRows=[...new Set(livingGenerators.map(t=>t.row))];
-    const newestRow=activeRows.length ? Math.max(...activeRows) : -1;
-    const newestTargets=livingGenerators.filter(t=>t.row===newestRow);
-    const newestY=newestTargets.length ? Math.min(...newestTargets.map(t=>t.y)) : H;
+    // Spawn rows based on the most recently spawned row's position.
+    // Do NOT gate spawning on how many older rows are still technically alive.
+    if(run.backstageRow<maxRows){
+      const lastSpawnedRow=run.backstageRow-1;
+      const lastRowTargets=livingGenerators.filter(t=>t.row===lastSpawnedRow);
+      const lastRowY=lastRowTargets.length ? Math.min(...lastRowTargets.map(t=>t.y)) : H;
 
-    if(run.backstageRow<maxRows && activeRows.length<3 && newestY>135){
-      spawnBackstageRow(false);
+      if(lastRowY>135 || lastRowTargets.length===0){
+        spawnBackstageRow(false);
+      }
     }
 
-    // Once all 8 rows have been spawned, bring in the finish door after
-    // the final row has moved far enough downstage.
+    // After row 8 has entered the playfield, the EXIT STAGE door follows behind it.
     if(run.backstageRow>=maxRows && !run.exitSpawned){
       const finalRow=livingGenerators.filter(t=>t.row===maxRows-1);
       const finalRowY=finalRow.length ? Math.min(...finalRow.map(t=>t.y)) : H;
-      if(finalRowY>165 || finalRow.length===0){
+
+      if(finalRowY>175 || finalRow.length===0){
         spawnExitStage();
       }
     }
